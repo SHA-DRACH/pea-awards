@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070707">
+  <title>Nominee | Paynesville Entertainment Awards</title>
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="categories">
+  <header id="site-header"></header>
+  <main>
+    <section class="section" style="padding-top:30px">
+      <div class="container" id="root"></div>
+    </section>
+  </main>
+  <div class="mobile-cta" id="mobile-cta"></div>
+  <footer id="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const root = document.getElementById('root');
+      const n = PEA.nominee(PEA.param('id'));
+      if (!n) {
+        root.innerHTML = '<div class="empty"><div class="big">🤔</div><p>Nominee not found.</p><a class="btn" href="categories.html">Browse categories</a></div>';
+        return;
+      }
+      const c = PEA.category(n.categoryId);
+      const s = PEA.settings();
+      document.title = n.name + ' | PEA';
+      const others = PEA.byCategory(n.categoryId).filter(x => x.id !== n.id);
+      const voteBtn = s.votingOpen
+        ? `<a class="btn btn-gold btn-lg" href="vote.html?id=${encodeURIComponent(n.id)}">🏆 Vote for ${PEA.esc(n.name.split(' – ')[0])}</a>`
+        : '<button class="btn btn-lg" disabled>Voting is closed</button>';
+
+      root.innerHTML = `
+        <div class="breadcrumb"><a href="index.html">Home</a> / <a href="nominees.html?cat=${encodeURIComponent(c.id)}">${PEA.esc(c.name)}</a> / ${PEA.esc(n.name)}</div>
+        <div class="profile reveal">
+          <div class="portrait"><img src="${PEA.photo(n)}" alt="${PEA.esc(n.name)}"></div>
+          <div>
+            <span class="eyebrow">${c.icon} ${PEA.esc(c.name)}</span>
+            <h1 class="gold-text">${PEA.esc(n.name)}</h1>
+            <p style="color:#ddd5c2">${PEA.esc(PEA.bioFor(n))}</p>
+            <div class="stat-row">
+              <div class="stat"><strong>${PEA.money(s.pricePerVote)}</strong><span>Per vote</span></div>
+              <div class="stat"><strong>${PEA.byCategory(n.categoryId).length}</strong><span>Nominees in category</span></div>
+              <div class="stat"><strong>${s.season}</strong><span>Season</span></div>
+            </div>
+            <div class="hero-cta" style="justify-content:flex-start">
+              ${voteBtn}
+              <button class="btn" id="share">🔗 Share</button>
+            </div>
+            <p class="muted small" style="margin-top:14px">Pay with Orange Money or Lonestar Cell MTN Mobile Money. Votes are counted instantly.</p>
+          </div>
+        </div>
+        ${others.length ? `
+        <div style="margin-top:56px">
+          <h2 style="font-size:1.4rem">Other nominees in ${PEA.esc(c.name)}</h2>
+          <div class="grid grid-4" style="margin-top:16px">${others.map(o => `
+            <a class="manage-item" href="nominee.html?id=${encodeURIComponent(o.id)}" style="color:var(--text)">
+              <img src="${PEA.photo(o)}" alt=""><div class="info"><b>${PEA.esc(o.name)}</b><small>View profile →</small></div></a>`).join('')}
+          </div>
+        </div>` : ''}`;
+
+      if (s.votingOpen) document.getElementById('mobile-cta').innerHTML = `<a class="btn btn-gold btn-block" href="vote.html?id=${encodeURIComponent(n.id)}">🏆 Vote — ${PEA.money(s.pricePerVote)}/vote</a>`;
+
+      document.getElementById('share').addEventListener('click', async () => {
+        const data = { title: 'Vote for ' + n.name, text: `Vote for ${n.name} – ${c.name} at the Paynesville Entertainment Awards!`, url: location.href };
+        try {
+          if (navigator.share) await navigator.share(data);
+          else { await navigator.clipboard.writeText(location.href); PEA.toast('Link copied — share it with your friends!'); }
+        } catch (e) { /* user cancelled */ }
+      });
+    });
+  </script>
+</body>
+</html>
