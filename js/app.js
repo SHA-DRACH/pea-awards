@@ -199,6 +199,67 @@ const PEA = (() => {
     if (meta) meta.content = t === 'dark' ? '#070707' : '#faf7f0';
   }
 
+  // ---------- Scroll animations (AOS) ----------
+  // Attributes are added from JS only when the AOS library loaded, so content
+  // never stays hidden if the CDN is unavailable.
+  const AOS_MAP = [
+    // [selector, animation, stagger step (ms), items per stagger cycle]
+    ['.hero-logo', 'zoom-in', 0, 1],
+    ['.hero .season', 'fade-down', 0, 1],
+    ['.hero h1', 'fade-up', 0, 1, 100],
+    ['.hero .welcome', 'fade-up', 0, 1, 200],
+    ['.hero-cta', 'fade-up', 0, 1, 300],
+    ['.vote-band .container > div', 'fade-right', 0, 1],
+    ['.vote-band .container > .btn', 'fade-left', 0, 1],
+    ['.event-banner', 'fade-up', 0, 1],
+    ['.countdown > div', 'flip-up', 100, 4],
+    ['.announce', 'fade-up', 0, 1],
+    ['.section-head', 'fade-up', 0, 1],
+    ['.page-head .container > *', 'fade-up', 80, 6],
+    ['.cat-card', 'fade-up', 90, 3],
+    ['.step', 'fade-up', 120, 4],
+    ['.nom-card', 'zoom-in-up', 80, 4],
+    ['.poster-wrap', 'fade-up', 0, 1],
+    ['.profile .portrait', 'zoom-in', 0, 1],
+    ['.profile > div:last-child', 'fade-up', 0, 1, 150],
+    ['.vote-layout > *', 'fade-up', 120, 2],
+    ['.receipt', 'zoom-in', 0, 1],
+    ['.kpis .kpi', 'fade-up', 70, 4],
+    ['.tx', 'fade-up', 50, 4],
+    ['.cat-progress .row', 'fade-left', 40, 5],
+    ['main .manage-item', 'fade-up', 50, 4],
+    ['.site-footer .footer-grid > div', 'fade-up', 100, 3],
+    ['.login-box', 'zoom-in', 0, 1]
+  ];
+  const reducedMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let aosReady = false;
+  function animate() {
+    if (!window.AOS || reducedMotion()) return;
+    const admin = document.body.dataset.page === 'admin';
+    AOS_MAP.forEach(([sel, anim, step, cycle, base = 0]) => {
+      document.querySelectorAll(sel).forEach((el, i) => {
+        if (el.hasAttribute('data-aos')) return;
+        if (admin && !el.closest('.site-footer, .login-box') && !el.matches('.login-box')) return; // keep the dashboard snappy
+        el.classList.remove('reveal');
+        el.setAttribute('data-aos', anim);
+        const delay = base + (step ? (i % cycle) * step : 0);
+        if (delay) el.setAttribute('data-aos-delay', String(delay));
+      });
+    });
+    if (!aosReady) {
+      AOS.init({ duration: 750, easing: 'ease-out-cubic', once: true, offset: 30, anchorPlacement: 'top-bottom' });
+      aosReady = true;
+    } else {
+      AOS.refreshHard();
+    }
+  }
+  function onScrollProgress() {
+    const bar = document.getElementById('scroll-progress');
+    if (!bar) return;
+    const h = document.documentElement.scrollHeight - innerHeight;
+    bar.style.transform = `scaleX(${h > 0 ? Math.min(1, scrollY / h) : 0})`;
+  }
+
   // ---------- Layout ----------
   function renderLayout() {
     const page = document.body.dataset.page || '';
@@ -251,6 +312,18 @@ const PEA = (() => {
         <div class="container footer-bottom">© ${new Date().getFullYear()} Paynesville Entertainment Awards · Prototype preview</div>`;
     }
     setTheme(currentTheme());
+
+    // Gold scroll-progress bar under the header
+    if (!document.getElementById('scroll-progress')) {
+      const bar = document.createElement('div');
+      bar.id = 'scroll-progress';
+      bar.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(bar);
+      addEventListener('scroll', onScrollProgress, { passive: true });
+      addEventListener('resize', onScrollProgress);
+    }
+    // Run after every page's own DOMContentLoaded rendering has finished
+    setTimeout(() => { animate(); onScrollProgress(); }, 0);
   }
 
   document.addEventListener('DOMContentLoaded', renderLayout);
@@ -262,6 +335,6 @@ const PEA = (() => {
     votesFor, categoryTotal, totalVotes, ballots, limit, castVote, findBallot, historyFor,
     normalizeEmail, validEmail, usedInCategory, remainingInCategory,
     addNominee, updateNominee, removeNominee, addCategory, removeCategory,
-    updateSettings, generateDemoVotes, bioFor, esc, num, param, fmtDate, maskEmail, photo, toast, setTheme, currentTheme
+    updateSettings, generateDemoVotes, bioFor, animate, esc, num, param, fmtDate, maskEmail, photo, toast, setTheme, currentTheme
   };
 })();

@@ -419,3 +419,33 @@ tbody tr:hover { background: var(--tint); }
 .reveal { animation: rise .6s ease both; }
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ===== Motion & polish (works with AOS scroll animations) ===== */
+/* Scroll progress bar under the header */
+#scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: var(--gold-grad); transform: scaleX(0); transform-origin: left center; box-shadow: 0 0 10px var(--glow); pointer-events: none; }
+
+/* Keep card hover lifts working after AOS has animated them in */
+.cat-card[data-aos].aos-animate:hover,
+.nom-card[data-aos].aos-animate:hover,
+.step[data-aos].aos-animate:hover { transform: translateY(-6px); transition-duration: .25s; transition-delay: 0s; }
+.step { transition: transform .25s, box-shadow .25s, border-color .25s; }
+.step:hover { border-color: var(--gold); box-shadow: 0 14px 40px var(--glow); }
+
+/* Slow gold shine across the main title */
+.hero h1.gold-text { background-size: 220% auto; animation: shine 7s linear infinite; }
+@keyframes shine { to { background-position: 220% center; } }
+
+/* Light sweep across gold buttons on hover */
+.btn-gold { position: relative; overflow: hidden; isolation: isolate; }
+.btn-gold::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.5) 50%, transparent 70%); transform: translateX(-120%); transition: transform .7s ease; }
+.btn-gold:hover::after { transform: translateX(120%); }
+
+/* Soft glow ring on category icons when hovered */
+.cat-card .icon { transition: transform .3s, box-shadow .3s; }
+.cat-card:hover .icon { transform: rotate(-6deg) scale(1.08); box-shadow: 0 0 24px var(--glow); }
+
+/* Nominee photo: gold sheen sweep on hover */
+.nom-card .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 35%, rgba(246,220,124,.28) 50%, transparent 65%); transform: translateX(-100%); transition: transform .8s ease; pointer-events: none; }
+.nom-card:hover .photo::after { transform: translateX(100%); }
+
+@media (prefers-reduced-motion: reduce) { .hero h1.gold-text { animation: none; } #scroll-progress { display: none; } }
