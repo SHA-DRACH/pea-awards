@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
-  <title>Buy Votes | Paynesville Entertainment Awards</title>
+  <title>Vote | Paynesville Entertainment Awards</title>
   <link rel="icon" href="assets/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
 </head>
 <body data-page="categories">
   <header id="site-header"></header>
@@ -17,185 +19,129 @@
     <section class="page-head" style="padding-bottom:10px">
       <div class="container">
         <div class="breadcrumb" id="crumb"></div>
-        <h1 class="gold-text">Buy Votes</h1>
-        <p class="muted">Each vote costs <b id="ppv">$0.25</b>. Votes are added to your nominee instantly after payment.</p>
+        <h1 class="gold-text">Cast Your Vote</h1>
+        <p class="muted">Voting is free. Each email address gets <b class="limit">2</b> votes in every category.</p>
       </div>
     </section>
 
     <section class="section" style="padding-top:20px">
       <div class="container" id="root">
-        <form class="vote-layout" id="vote-form" novalidate>
-          <div class="grid" style="gap:20px">
-            <!-- Step 1 -->
-            <div class="card">
-              <div class="step-title"><span class="n">1</span>How many votes?</div>
-              <div class="packages" id="packages"></div>
-              <div class="qty">
-                <button type="button" id="minus" aria-label="Fewer votes">−</button>
-                <input class="input" id="qty" type="number" inputmode="numeric" min="1" max="10000" value="10" aria-label="Number of votes">
-                <button type="button" id="plus" aria-label="More votes">+</button>
-              </div>
-              <p class="hint" style="margin-top:8px">Enter any number of votes from 1 to 10,000.</p>
+        <div class="vote-layout">
+          <form class="card" id="vote-form" novalidate>
+            <div class="vote-nom" id="vote-nom"></div>
+
+            <div class="field" style="margin-top:22px">
+              <label for="email">Your email address</label>
+              <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+              <span class="error-text" id="email-err"></span>
+            </div>
+            <div class="field">
+              <label for="name">Your name <span class="muted">(optional)</span></label>
+              <input class="input" id="name" autocomplete="name" placeholder="e.g. Musu Kollie">
             </div>
 
-            <!-- Step 2 -->
-            <div class="card">
-              <div class="step-title"><span class="n">2</span>Payment method</div>
-              <div class="methods">
-                <label class="method orange active">
-                  <input type="radio" name="method" value="orange" checked>
-                  <span class="logo">OM</span>
-                  <span><b>Orange Money</b><small>Orange Liberia · 077 / 078</small></span>
-                </label>
-                <label class="method mtn">
-                  <input type="radio" name="method" value="mtn">
-                  <span class="logo">MoMo</span>
-                  <span><b>Lonestar Cell MTN</b><small>Mobile Money · 088 / 055</small></span>
-                </label>
-              </div>
-            </div>
+            <div class="votes-left" id="votes-left" hidden></div>
 
-            <!-- Step 3 -->
-            <div class="card">
-              <div class="step-title"><span class="n">3</span>Your details</div>
-              <div class="field">
-                <label for="name">Full name</label>
-                <input class="input" id="name" autocomplete="name" placeholder="e.g. Musu Kollie">
-              </div>
-              <div class="field">
-                <label for="phone">Mobile Money number</label>
-                <input class="input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="e.g. 0770 123 456">
-                <span class="hint">A payment prompt is sent to this number. We also use it to show your voting history.</span>
-                <span class="error-text" id="phone-err"></span>
-              </div>
-            </div>
-          </div>
+            <button class="btn btn-gold btn-block btn-lg" id="vote-btn" type="submit">🏆 Vote</button>
+            <p class="hint center" style="margin-top:12px">Your email is only used to count votes and show your voting history.</p>
+          </form>
 
-          <!-- Summary -->
-          <aside class="card summary">
-            <div class="nom" id="sum-nom"></div>
-            <div class="sum-row"><span>Votes</span><b id="sum-votes">10</b></div>
-            <div class="sum-row"><span>Price per vote</span><b id="sum-ppv">$0.25</b></div>
-            <div class="sum-row"><span>Pay with</span><b id="sum-method">Orange Money</b></div>
-            <div class="sum-total"><span>Total</span><strong id="sum-total">$2.50</strong></div>
-            <button class="btn btn-gold btn-block btn-lg" style="margin-top:18px" id="pay-btn" type="submit">Pay &amp; Vote</button>
-            <p class="hint center" style="margin-top:12px">🔒 Prototype mode — no real money is charged.</p>
+          <aside class="card">
+            <h3 style="font-size:1.05rem">Voting rules</h3>
+            <ul class="rules">
+              <li>✉️ <span>Vote with a valid email address.</span></li>
+              <li>🗳️ <span>Each email gets <b class="limit">2</b> votes in <b>every</b> category.</span></li>
+              <li>🎯 <span>Give both votes to one nominee, or split them between two.</span></li>
+              <li>⚡ <span>Votes are counted instantly.</span></li>
+              <li>📜 <span>See your votes anytime on <a href="history.html">My Votes</a>.</span></li>
+            </ul>
+            <div id="other-cats" style="margin-top:20px"></div>
           </aside>
-        </form>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- Payment modal -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="card" id="modal-body"></div>
   </div>
-
   <footer id="site-footer"></footer>
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const n = PEA.nominee(PEA.param('id'));
       const s = PEA.settings();
       const root = document.getElementById('root');
+      document.querySelectorAll('.limit').forEach(el => el.textContent = PEA.limit());
       if (!n) { root.innerHTML = '<div class="empty"><div class="big">🤔</div><p>Please choose a nominee first.</p><a class="btn btn-gold" href="categories.html">Browse categories</a></div>'; return; }
       if (!s.votingOpen) { root.innerHTML = '<div class="empty"><div class="big">⏳</div><p>Voting is currently closed.</p><a class="btn" href="index.html">Back home</a></div>'; return; }
       const c = PEA.category(n.categoryId);
-      const ppv = s.pricePerVote;
+      document.title = 'Vote for ' + n.name + ' | PEA';
 
       document.getElementById('crumb').innerHTML = `<a href="index.html">Home</a> / <a href="nominees.html?cat=${encodeURIComponent(c.id)}">${PEA.esc(c.name)}</a> / <a href="nominee.html?id=${encodeURIComponent(n.id)}">${PEA.esc(n.name)}</a> / Vote`;
-      document.getElementById('ppv').textContent = PEA.money(ppv);
-      document.getElementById('sum-ppv').textContent = PEA.money(ppv);
-      document.getElementById('sum-nom').innerHTML = `<img src="${PEA.photo(n)}" alt=""><div><small class="muted">You're voting for</small><h3 style="margin:2px 0;font-size:1.05rem">${PEA.esc(n.name)}</h3><small class="muted">${c.icon} ${PEA.esc(c.name)}</small></div>`;
+      document.getElementById('vote-nom').innerHTML = `
+        <img src="${PEA.photo(n)}" alt="${PEA.esc(n.name)}">
+        <div><span class="eyebrow" style="margin:0">${c.icon} ${PEA.esc(c.name)}</span>
+          <h2 class="gold-text">${PEA.esc(n.name)}</h2>
+          <a class="small" href="nominee.html?id=${encodeURIComponent(n.id)}">View profile</a></div>`;
 
-      // Remember voter details for convenience
+      const emailEl = document.getElementById('email');
+      const nameEl = document.getElementById('name');
+      const err = document.getElementById('email-err');
+      const left = document.getElementById('votes-left');
+      const btn = document.getElementById('vote-btn');
+
       try {
         const saved = JSON.parse(localStorage.getItem('pea_voter') || '{}');
-        if (saved.name) document.getElementById('name').value = saved.name;
-        if (saved.phone) document.getElementById('phone').value = saved.phone;
+        if (saved.email) emailEl.value = saved.email;
+        if (saved.name) nameEl.value = saved.name;
       } catch (e) {}
 
-      const pkgs = [[1, ''], [4, ''], [10, 'Popular'], [20, ''], [40, ''], [100, 'Super fan']];
-      const qtyEl = document.getElementById('qty');
-      const pkgEl = document.getElementById('packages');
-      pkgEl.innerHTML = pkgs.map(([q, tag]) => `<button type="button" class="pkg" data-q="${q}">${tag ? `<span class="tag">${tag}</span>` : ''}<strong>${q}</strong><span>${q === 1 ? 'vote' : 'votes'} · ${PEA.money(q * ppv)}</span></button>`).join('');
-
-      const qty = () => Math.min(10000, Math.max(1, Math.floor(Number(qtyEl.value) || 0)));
-      const method = () => document.querySelector('input[name=method]:checked').value;
-      function update() {
-        const q = qty();
-        document.getElementById('sum-votes').textContent = PEA.num(q);
-        document.getElementById('sum-total').textContent = PEA.money(q * ppv);
-        document.getElementById('sum-method').textContent = PEA.methodName(method());
-        pkgEl.querySelectorAll('.pkg').forEach(b => b.classList.toggle('active', Number(b.dataset.q) === Number(qtyEl.value)));
-        document.querySelectorAll('.method').forEach(m => m.classList.toggle('active', m.querySelector('input').checked));
+      function refresh() {
+        const ok = PEA.validEmail(emailEl.value);
+        left.hidden = !ok;
+        if (!ok) { btn.disabled = false; btn.textContent = '🏆 Vote'; return; }
+        const rem = PEA.remainingInCategory(emailEl.value, c.id), lim = PEA.limit();
+        left.innerHTML = `<strong>${rem}</strong><span>of ${lim} vote${lim > 1 ? 's' : ''} left<br><small class="muted">in ${PEA.esc(c.name)}</small></span>
+          <span class="pips">${Array.from({ length: lim }, (_, i) => `<i class="${i < rem ? 'on' : ''}"></i>`).join('')}</span>`;
+        btn.disabled = rem <= 0;
+        btn.textContent = rem <= 0 ? 'No votes left in this category' : `🏆 Vote for ${n.name.split(' – ')[0]}`;
       }
-      pkgEl.addEventListener('click', e => { const b = e.target.closest('.pkg'); if (b) { qtyEl.value = b.dataset.q; update(); } });
-      document.getElementById('minus').onclick = () => { qtyEl.value = Math.max(1, qty() - 1); update(); };
-      document.getElementById('plus').onclick = () => { qtyEl.value = Math.min(10000, qty() + 1); update(); };
-      qtyEl.addEventListener('input', update);
-      qtyEl.addEventListener('blur', () => { qtyEl.value = qty(); update(); });
-      document.querySelectorAll('input[name=method]').forEach(r => r.addEventListener('change', update));
-      update();
+      emailEl.addEventListener('input', () => { err.textContent = ''; emailEl.classList.remove('invalid'); refresh(); });
+      refresh();
 
-      // ---------- Payment flow (simulated) ----------
+      // Suggest other categories the voter can still vote in
+      function otherCats() {
+        const box = document.getElementById('other-cats');
+        if (!PEA.validEmail(emailEl.value)) { box.innerHTML = ''; return; }
+        const open = PEA.categories().filter(x => x.id !== c.id && PEA.remainingInCategory(emailEl.value, x.id) > 0).slice(0, 5);
+        box.innerHTML = open.length ? `<h3 style="font-size:.95rem">Keep voting</h3><div class="cat-progress">${open.map(x =>
+          `<a class="row" href="nominees.html?cat=${encodeURIComponent(x.id)}"><span>${x.icon} ${PEA.esc(x.name)}</span><span class="badge">${PEA.remainingInCategory(emailEl.value, x.id)} left</span></a>`).join('')}</div>` : '';
+      }
+      emailEl.addEventListener('change', otherCats);
+      otherCats();
+
       const modal = document.getElementById('modal');
       const body = document.getElementById('modal-body');
-      const close = () => modal.classList.remove('open');
-
       document.getElementById('vote-form').addEventListener('submit', e => {
         e.preventDefault();
-        const phoneEl = document.getElementById('phone');
-        const err = document.getElementById('phone-err');
-        if (!PEA.validPhone(phoneEl.value)) {
-          phoneEl.classList.add('invalid');
-          err.textContent = 'Enter a valid 10-digit Liberian mobile number (e.g. 0770123456).';
-          phoneEl.focus();
-          return;
+        if (!PEA.validEmail(emailEl.value)) {
+          emailEl.classList.add('invalid'); err.textContent = 'Please enter a valid email address.'; emailEl.focus(); return;
         }
-        phoneEl.classList.remove('invalid'); err.textContent = '';
-        const name = document.getElementById('name').value;
-        try { localStorage.setItem('pea_voter', JSON.stringify({ name, phone: phoneEl.value })); } catch (e) {}
-
-        const q = qty(), m = method(), total = PEA.money(q * ppv), phone = PEA.normalizePhone(phoneEl.value);
-        const op = PEA.methodName(m);
-
-        // Step A: sending request
-        body.innerHTML = `<div class="spinner"></div><h3 id="modal-title">Contacting ${op}…</h3><p class="muted">Sending a payment request of <b>${total}</b> to <b>${phone}</b>.</p>`;
-        modal.classList.add('open');
-
-        setTimeout(() => {
-          // Step B: approve on phone
-          body.innerHTML = `
-            <h3 id="modal-title">Approve on your phone</h3>
-            <p class="muted">Check your phone for the ${op} prompt and enter your PIN to approve.</p>
-            <div class="phone-mock">
-              <div class="op" style="color:${m === 'orange' ? 'var(--orange)' : 'var(--mtn)'}">${op}</div>
-              Pay <b>${total}</b> to <b>PEA Awards</b> for ${PEA.num(q)} vote${q > 1 ? 's' : ''}?<br>
-              <span class="muted">Enter PIN to confirm</span>
-            </div>
-            <p class="hint">Prototype: tap the button below to simulate approval.</p>
-            <div class="grid" style="gap:10px;margin-top:10px">
-              <button class="btn btn-gold btn-block" id="approve">✔ Simulate approval</button>
-              <button class="btn btn-ghost btn-block" id="cancel">Cancel</button>
-            </div>`;
-          document.getElementById('cancel').onclick = () => { close(); PEA.toast('Payment cancelled.', 'error'); };
-          document.getElementById('approve').onclick = () => {
-            body.innerHTML = `<div class="spinner"></div><h3 id="modal-title">Confirming payment…</h3><p class="muted">Counting your votes.</p>`;
-            setTimeout(() => {
-              try {
-                const tx = PEA.recordPurchase({ nomineeId: n.id, votes: q, voterName: name, phone, method: m });
-                location.href = 'confirmation.html?ref=' + encodeURIComponent(tx.ref);
-              } catch (ex) {
-                body.innerHTML = `<h3>Payment failed</h3><p class="muted">${PEA.esc(ex.message)}</p><button class="btn btn-block" onclick="document.getElementById('modal').classList.remove('open')">Close</button>`;
-              }
-            }, 1400);
-          };
-        }, 1500);
+        try { localStorage.setItem('pea_voter', JSON.stringify({ email: PEA.normalizeEmail(emailEl.value), name: nameEl.value })); } catch (ex) {}
+        try {
+          const b = PEA.castVote({ nomineeId: n.id, email: emailEl.value, voterName: nameEl.value });
+          location.href = 'confirmation.html?ref=' + encodeURIComponent(b.ref);
+        } catch (ex) {
+          body.innerHTML = `<div class="big" style="font-size:3rem">🗳️</div><h3 id="modal-title">Vote not counted</h3><p class="muted">${PEA.esc(ex.message)}</p>
+            <div class="grid" style="gap:10px"><a class="btn btn-gold btn-block" href="categories.html">Vote in another category</a>
+            <button class="btn btn-ghost btn-block" type="button" id="close-modal">Close</button></div>`;
+          modal.classList.add('open');
+          document.getElementById('close-modal').onclick = () => modal.classList.remove('open');
+          refresh();
+        }
       });
-      modal.addEventListener('click', e => { if (e.target === modal) close(); });
+      modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
     });
   </script>
 </body>

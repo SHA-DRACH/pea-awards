@@ -4,19 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#070707">
-  <meta name="description" content="Vote for your favourite nominees at the Paynesville Entertainment Awards. Only $0.25 per vote.">
+  <meta name="description" content="Vote for your favourite nominees at the Paynesville Entertainment Awards 2026/2027.">
   <title>Paynesville Entertainment Awards | Vote Now</title>
   <link rel="icon" href="assets/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
 </head>
 <body data-page="home">
   <header id="site-header"></header>
 
   <main>
-    <!-- Hero -->
     <section class="hero">
       <div class="hero-rings" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="container hero-inner reveal">
@@ -33,18 +34,16 @@
       </div>
     </section>
 
-    <!-- Your vote matters -->
     <section class="vote-band">
       <div class="container">
         <div>
           <h2>Your Vote Matters</h2>
-          <p>Vote for your favourite nominees. Only <span class="price" id="price">$0.25</span> per vote.</p>
+          <p>Voting is free! Use your email to cast <b class="limit">2</b> votes in every category.</p>
         </div>
         <a href="categories.html" class="btn btn-lg">VOTE NOW →</a>
       </div>
     </section>
 
-    <!-- Event banner -->
     <section class="section">
       <div class="container">
         <div class="card event-banner reveal">
@@ -54,12 +53,12 @@
             <ul class="event-meta">
               <li>📅 <span><b>Date:</b> <span id="event-date"></span></span></li>
               <li>📍 <span><b>Venue:</b> <span id="event-venue"></span></span></li>
-              <li>🎟️ <span><b>Categories:</b> <span id="cat-count"></span> awards · <span id="nom-count"></span> nominees</span></li>
+              <li>🎟️ <span><b>Awards:</b> <span id="cat-count"></span> categories · <span id="nom-count"></span> nominees</span></li>
             </ul>
           </div>
           <div>
             <p class="muted small center" style="margin-bottom:10px">Countdown to the awards night</p>
-            <div class="countdown" id="countdown">
+            <div class="countdown">
               <div><strong id="cd-d">0</strong><span>Days</span></div>
               <div><strong id="cd-h">0</strong><span>Hours</span></div>
               <div><strong id="cd-m">0</strong><span>Mins</span></div>
@@ -67,14 +66,10 @@
             </div>
           </div>
         </div>
-        <div class="announce" id="announce">
-          <span class="dot"></span>
-          <div id="announce-text"></div>
-        </div>
+        <div class="announce" id="announce"><span class="dot"></span><div id="announce-text"></div></div>
       </div>
     </section>
 
-    <!-- Categories preview -->
     <section class="section" style="padding-top:0">
       <div class="container">
         <div class="section-head">
@@ -84,39 +79,34 @@
           <div class="divider"></div>
         </div>
         <div class="grid grid-3" id="cat-preview"></div>
-        <div class="center" style="margin-top:28px">
-          <a href="categories.html" class="btn">View all categories →</a>
-        </div>
+        <div class="center" style="margin-top:28px"><a href="categories.html" class="btn">View all categories →</a></div>
       </div>
     </section>
 
-    <!-- How it works -->
     <section class="section" id="how">
       <div class="container">
         <div class="section-head">
           <span class="eyebrow">How to vote</span>
-          <h2>Voting is quick &amp; easy</h2>
+          <h2>Voting is quick, easy &amp; free</h2>
           <div class="divider"></div>
         </div>
         <div class="grid grid-4 steps">
-          <div class="card step"><h3>Choose a category</h3><p>Browse award categories and find your favourite nominee.</p></div>
-          <div class="card step"><h3>Pick your votes</h3><p>Buy as many votes as you like — each vote is only <span class="price-inline">$0.25</span>.</p></div>
-          <div class="card step"><h3>Pay with Mobile Money</h3><p>Pay securely with Orange Money or Lonestar Cell MTN Mobile Money.</p></div>
-          <div class="card step"><h3>Votes counted instantly</h3><p>Get a confirmation receipt and check your voting history anytime.</p></div>
+          <div class="card step"><h3>Choose a category</h3><p>Browse the award categories and find your favourite nominee.</p></div>
+          <div class="card step"><h3>Open their profile</h3><p>See the nominee's photo and details, then tap <b>Vote</b>.</p></div>
+          <div class="card step"><h3>Enter your email</h3><p>Each email address gets <b class="limit">2</b> votes in every category.</p></div>
+          <div class="card step"><h3>Vote counted instantly</h3><p>Get a confirmation and check your voting history anytime.</p></div>
         </div>
       </div>
     </section>
   </main>
 
-  <div class="mobile-cta"><a href="categories.html" class="btn btn-gold btn-block">🏆 Vote Now — <span class="price-inline">$0.25</span>/vote</a></div>
+  <div class="mobile-cta"><a href="categories.html" class="btn btn-gold btn-block">🏆 Vote Now — it's free</a></div>
   <footer id="site-footer"></footer>
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const s = PEA.settings();
-      document.querySelectorAll('#price, .price-inline').forEach(el => el.textContent = PEA.money(s.pricePerVote));
+      document.querySelectorAll('.limit').forEach(el => el.textContent = PEA.limit());
       document.getElementById('season').textContent = 'Season ' + s.season;
       document.getElementById('season2').textContent = s.season;
       document.getElementById('event-date').textContent = new Date(s.eventDate).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' });
@@ -126,25 +116,24 @@
 
       const ann = document.getElementById('announce');
       document.getElementById('announce-text').innerHTML = s.votingOpen
-        ? '<b>Voting is now OPEN!</b> <span class="muted">Support your favourite nominees before voting closes.</span>'
+        ? `<b>Voting is now OPEN!</b> <span class="muted">Every email gets ${PEA.limit()} votes per category.</span>`
         : '<b>Voting is currently CLOSED.</b> <span class="muted">Thank you for your support — results will be announced at the awards night.</span>';
       ann.classList.toggle('closed', !s.votingOpen);
 
-      // Countdown
       const target = new Date(s.eventDate).getTime();
+      const set = (id, v) => document.getElementById(id).textContent = String(v).padStart(2, '0');
       const tick = () => {
         const d = Math.max(0, target - Date.now());
-        const set = (id, v) => document.getElementById(id).textContent = String(v).padStart(2, '0');
         set('cd-d', Math.floor(d / 864e5)); set('cd-h', Math.floor(d / 36e5) % 24);
         set('cd-m', Math.floor(d / 6e4) % 60); set('cd-s', Math.floor(d / 1e3) % 60);
       };
       tick(); setInterval(tick, 1000);
 
-      // Category preview
       document.getElementById('cat-preview').innerHTML = PEA.categories().slice(0, 6).map(c => `
         <a class="cat-card" href="nominees.html?cat=${encodeURIComponent(c.id)}">
           <div class="icon">${c.icon}</div>
           <h3>${PEA.esc(c.name)}</h3>
+          <p>${PEA.esc(PEA.byCategory(c.id).slice(0, 3).map(n => n.name).join(' · '))} …</p>
           <div class="meta"><span>${PEA.byCategory(c.id).length} nominees</span><span>Vote →</span></div>
         </a>`).join('');
     });

@@ -19,6 +19,8 @@
     .poster-wrap details[open] summary::after { content: "▴"; }
     .poster-wrap img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #111; }
   </style>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
 </head>
 <body data-page="categories">
   <header id="site-header"></header>
@@ -41,8 +43,6 @@
   </main>
   <footer id="site-footer"></footer>
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const cats = PEA.categories();
@@ -52,7 +52,7 @@
       document.getElementById('crumb').textContent = c.name;
       document.getElementById('cat-icon').textContent = c.icon;
       document.getElementById('cat-name').textContent = c.name;
-      document.getElementById('cat-sub').textContent = `${PEA.byCategory(c.id).length} nominees · ${PEA.money(PEA.settings().pricePerVote)} per vote`;
+      document.getElementById('cat-sub').textContent = `${PEA.byCategory(c.id).length} nominees · ${PEA.limit()} free votes per email`;
 
       const chips = document.getElementById('chips');
       chips.innerHTML = cats.map(x => `<a class="chip ${x.id === c.id ? 'active' : ''}" href="nominees.html?cat=${encodeURIComponent(x.id)}">${x.icon} ${PEA.esc(x.name)}</a>`).join('');

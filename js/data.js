@@ -1,7 +1,7 @@
 /* Paynesville Entertainment Awards 2026/2027 — official categories & nominees.
    Transcribed from the organizers' category posters (Google Drive folder "PEA Final").
-   Organizers can correct spellings, add photos and bios in the Admin Dashboard. */
-const PEA_POSTER = id => `https://lh3.googleusercontent.com/d/${id}=w1200`;
+   Organizers can correct spellings, replace photos and add bios in the Admin Dashboard. */
+/* Nominee photos in assets/nominees/ were cropped from these official posters (saved in assets/posters/). */
 
 const PEA_CATEGORY_LIST = [
   ['artist', 'Artist of the Year', '🌟', '1DEaEz69QvnopbzwRpOKMFbsADL2HyOCf', ['King Dennis', 'Brickson', 'Christoph the Change', 'SIO', 'Bucky Raw']],
@@ -23,7 +23,7 @@ const PEA_CATEGORY_LIST = [
   ['radio-personality', 'Radio Personality of the Year', '🎙️', '19XUARmPwHBbweOz58T953YVQTKtaUU_J', ['Weekie Brooks', 'Boakai Amara Kamara', 'Constance Joetta', 'DJ Aaronic', 'DJ Eco']],
   ['radio-station', 'Best Radio Station of the Year', '📡', '1OIDSSrc72mwZC_QY0_GILr45ATxwQQ07', ['ELBC', 'Blaze FM', 'Punch FM', 'Global Dream FM Radio', 'OK FM', 'Truth FM']],
   ['mc', 'Best MC of the Year', '🎤', '1brgVxMjQvqIjCITYZeK42wPVkrScl9Nu', ['DJ Aaronic', 'JW Bigpapa', 'Ezy Pain', 'Mongar']],
-  ['hypeman', 'Hype Man of the Year', '📣', '1NaO0dzIxtvWgO6DFUjq0psn4woNhiIij', ['TheGoat of Hypesoundz', 'Rozaki Rozaki', 'Hypeman Fire Boy the Biggest', 'Hypeman Bucky']],
+  ['hypeman', 'Hype Man of the Year', '📣', '1NaO0dzIxtvWgO6DFUjq0psn4woNhiIij', ['Rozaki Rozaki', 'TheGoat of Hypesoundz', 'Hypeman Fire Boy the Biggest', 'Hypeman Bucky']],
   ['actor', 'Best Actor of the Year', '🎬', '1jO5_-zRPASlV8UDIwpjcOPhO-XhDWdOA', ['Joseph C. Weah Jr.', 'Sakou M. Sirleaf', 'Terry Brown', 'Sammie Jaylah', 'Frank O. Wakie', 'Ralfee Usman Lor', 'Amb. Clarence B. Waner']],
   ['actress', 'Best Actress of the Year', '🎭', '1PhOCiABrzXjvkiA04DKt-CTe90O2Iu0V', ['Ertamar Thomson', 'Catherine Page', 'D. Babara Gono', 'LIB Sarafina', 'Sampdoria Grace', 'Lydia G. Vonlah']],
   ['comedian', 'Comedian of the Year', '😂', '1GAXYWo--8leXGj-7Y77M9lWK-xkiJd06', ['Big Woman Royalty', 'Clarence Skits', 'Sagacious Comedy', 'Mongar Comedy', 'Real Paul Flomo', 'Comedian Pa Joe']],
@@ -35,15 +35,14 @@ const PEA_CATEGORY_LIST = [
   ['blog', 'Blog of the Year', '📰', '1p1PHVR3JCeH65ICftg19aenu5bDhcwdn', ['Mark the Blogger', 'Gary the Blogger', 'Gossip Liberia', 'Rocky Online', 'JW Bigpapa Media', 'Francis the Blogger 231', 'Liberian Soccer', 'Stress Free Blog']],
   ['fashion', 'Fashion Designer of the Year', '👗', '1imNf4tov2clzDa-xHoxCM7HPr0JXe1VI', ['Designer Tyga', 'Cwise the Boss', 'Ma Kpana Son (Kelvin)', 'Godwin Godwin', 'Phyno the Boss']],
   ['graphics', 'Best Graphics Designer of the Year', '🎨', '1oSYVVywQLLgmWCqYzLOl7oGow2lGp8Zh', ['KN Graphic', 'Dr Speen Design', 'Elvis Work', 'Areece Graphic']],
-  ['photo', 'Best Photo Studio / Photographer of the Year', '📷', '1GCoRAL6-1P6wVnG2CDPy1tzARkChFu2u', ['Master Pop-Pop Studio', 'SupremeDada – Jas Studio', 'Shine-Shine Studio', 'King Flash']],
+  ['photo', 'Best Photo Studio / Photographer of the Year', '📷', '1GCoRAL6-1P6wVnG2CDPy1tzARkChFu2u', ['SupremeDada – Jas Studio', 'Master Pop-Pop Studio', 'Shine-Shine Studio', 'King Flash']],
   ['beauty', 'Beautician / Beauty Salon of the Year', '💄', '1ybruf4duhlpRllhcb07TbUHnDb2v5mwO', ["Mikey's Touch", 'Charles Glow', 'Leona Beauty Bar']],
   ['nightclub', 'Most Trending Bar / Night Club of the Year', '🍸', '1OlvIY7h52JZEZyZhU7i86hLwmpqawPeS', ['Seny Bar', 'New Liberia', 'Private Bar', 'Passion Night Club']]
 ];
 
 const PEA_DEFAULT = {
   settings: {
-    pricePerVote: 0.25,
-    currency: 'USD',
+    votesPerCategory: 2,
     votingOpen: true,
     season: '2026/2027',
     eventDate: '2027-01-30T19:00:00',
@@ -51,7 +50,7 @@ const PEA_DEFAULT = {
     sponsorPhone: '+231 886 629 824',
     social: '@pea'
   },
-  categories: PEA_CATEGORY_LIST.map(([id, name, icon, poster]) => ({ id, name, icon, poster: PEA_POSTER(poster), desc: '' })),
+  categories: PEA_CATEGORY_LIST.map(([id, name, icon]) => ({ id, name, icon, poster: `assets/posters/${id}.jpg`, desc: '' })),
   nominees: PEA_CATEGORY_LIST.flatMap(([cid, cname, , , list]) =>
-    list.map((name, i) => ({ id: `${cid}-${i + 1}`, categoryId: cid, name, bio: '', photo: '' })))
+    list.map((name, i) => ({ id: `${cid}-${i + 1}`, categoryId: cid, name, bio: '', photo: `assets/nominees/${cid}-${i + 1}.jpg` })))
 };

@@ -1,8 +1,16 @@
-/* PEA core: storage, vote counting, shared layout and helpers.
+/* PEA core: storage, email-based vote counting, theme, shared layout and helpers.
    PROTOTYPE NOTE: data is kept in the browser's localStorage. A production build
-   must move votes, payments and admin auth to a secure server + database. */
+   must move votes, email verification and admin auth to a secure server + database. */
+
+// Apply the saved theme before the page paints (avoids a flash of the wrong theme)
+(function () {
+  let t = null;
+  try { t = localStorage.getItem('pea_theme'); } catch (e) {}
+  if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+})();
+
 const PEA = (() => {
-  const KEY = 'pea_state_v2';
+  const KEY = 'pea_state_v3';
   let state = null;
 
   function hash(str) {
@@ -15,31 +23,9 @@ const PEA = (() => {
     const s = JSON.parse(JSON.stringify(PEA_DEFAULT));
     s.votes = {};
     s.nominees.forEach(n => { s.votes[n.id] = 0; });   // every nominee starts at zero
-    s.transactions = [];
+    s.ballots = [];                                    // one entry per vote cast
     return s;
   }
-
-  // Admin demo helper: fill in sample transactions so the dashboard can be previewed.
-  function generateDemoVotes(count = 60) {
-    const s = load();
-    const names = ['Musu K.', 'Jartu S.', 'Emmanuel T.', 'Fatu B.', 'Prince W.', 'Hawa D.', 'Joseph K.', 'Comfort N.', 'Varney C.', 'Mamie G.'];
-    const pkgs = [1, 4, 10, 20, 40, 100];
-    for (let i = 0; i < count; i++) {
-      const n = s.nominees[Math.floor(Math.random() * s.nominees.length)];
-      const qty = pkgs[Math.floor(Math.random() * pkgs.length)];
-      const method = Math.random() < .5 ? 'orange' : 'mtn';
-      const phone = (method === 'orange' ? '077' : '088') + String(Math.floor(1e6 + Math.random() * 8.99e6)).slice(0, 7);
-      s.votes[n.id] = (s.votes[n.id] || 0) + qty;
-      s.transactions.push({
-        ref: makeRef(), nomineeId: n.id, nomineeName: n.name, categoryId: n.categoryId, votes: qty,
-        amount: +(qty * s.settings.pricePerVote).toFixed(2), voterName: names[i % names.length], phone, method,
-        status: 'Successful', demo: true, date: new Date(Date.now() - Math.random() * 7 * 864e5).toISOString()
-      });
-    }
-    s.transactions.sort((a, b) => b.date.localeCompare(a.date));
-    save();
-  }
-  const bioFor = n => n.bio || `Nominated for ${category(n.categoryId)?.name || 'an award'} at the Paynesville Entertainment Awards ${settings().season}. Show your support — every vote counts!`;
 
   function load() {
     if (state) return state;
@@ -65,16 +51,15 @@ const PEA = (() => {
   const votesFor = id => load().votes[id] || 0;
   const categoryTotal = id => byCategory(id).reduce((t, n) => t + votesFor(n.id), 0);
   const totalVotes = () => Object.values(load().votes).reduce((a, b) => a + b, 0);
-  const transactions = () => load().transactions;
+  const ballots = () => load().ballots;
+  const limit = () => Number(settings().votesPerCategory) || 2;
 
-  // ---------- Vote counting ----------
-  function normalizePhone(p) {
-    let d = String(p || '').replace(/\D/g, '');
-    if (d.startsWith('231')) d = d.slice(3);
-    if (d.length === 9) d = '0' + d;
-    return d;
-  }
-  function validPhone(p) { return /^0\d{9}$/.test(normalizePhone(p)); }
+  // ---------- Email voting ----------
+  const normalizeEmail = e => String(e || '').trim().toLowerCase();
+  const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalizeEmail(e));
+  const usedInCategory = (email, categoryId) =>
+    ballots().filter(b => b.email === normalizeEmail(email) && b.categoryId === categoryId).length;
+  const remainingInCategory = (email, categoryId) => Math.max(0, limit() - usedInCategory(email, categoryId));
 
   function makeRef() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -83,32 +68,50 @@ const PEA = (() => {
     return 'PEA-' + r;
   }
 
-  function recordPurchase({ nomineeId, votes, voterName, phone, method }) {
+  function castVote({ nomineeId, email, voterName }) {
     const s = load();
     const n = nominee(nomineeId);
-    if (!n) throw new Error('Nominee not found');
-    if (!s.settings.votingOpen) throw new Error('Voting is currently closed');
-    const qty = Math.max(1, Math.floor(Number(votes)));
-    const tx = {
-      ref: makeRef(),
-      nomineeId,
-      nomineeName: n.name,
-      categoryId: n.categoryId,
-      votes: qty,
-      amount: +(qty * s.settings.pricePerVote).toFixed(2),
-      voterName: (voterName || '').trim() || 'Anonymous',
-      phone: normalizePhone(phone),
-      method,
-      status: 'Successful',
-      date: new Date().toISOString()
+    if (!n) throw new Error('Nominee not found.');
+    if (!s.settings.votingOpen) throw new Error('Voting is currently closed.');
+    if (!validEmail(email)) throw new Error('Please enter a valid email address.');
+    const mail = normalizeEmail(email);
+    if (remainingInCategory(mail, n.categoryId) <= 0) {
+      throw new Error(`You have used all ${limit()} votes for ${category(n.categoryId).name}.`);
+    }
+    const b = {
+      ref: makeRef(), nomineeId, nomineeName: n.name, categoryId: n.categoryId,
+      email: mail, voterName: (voterName || '').trim() || 'Anonymous', date: new Date().toISOString()
     };
-    s.votes[nomineeId] = (s.votes[nomineeId] || 0) + qty;   // automatic count
-    s.transactions.unshift(tx);
+    s.votes[nomineeId] = (s.votes[nomineeId] || 0) + 1;   // automatic count
+    s.ballots.unshift(b);
     save();
-    return tx;
+    return b;
   }
-  const findTx = ref => transactions().find(t => t.ref === ref);
-  const historyFor = phone => transactions().filter(t => t.phone === normalizePhone(phone));
+  const findBallot = ref => ballots().find(b => b.ref === ref);
+  const historyFor = email => ballots().filter(b => b.email === normalizeEmail(email));
+
+  // Admin demo helper: sample votes so the dashboard can be previewed.
+  function generateDemoVotes(voters = 25) {
+    const s = load();
+    const names = ['Musu K.', 'Jartu S.', 'Emmanuel T.', 'Fatu B.', 'Prince W.', 'Hawa D.', 'Joseph K.', 'Comfort N.', 'Varney C.', 'Mamie G.'];
+    for (let v = 0; v < voters; v++) {
+      const email = `demo.voter${Date.now().toString(36)}${v}@example.com`;
+      const cats = s.categories.slice().sort(() => Math.random() - .5).slice(0, 3 + Math.floor(Math.random() * 6));
+      cats.forEach(c => {
+        const list = s.nominees.filter(n => n.categoryId === c.id);
+        const k = 1 + Math.floor(Math.random() * limit());
+        for (let i = 0; i < k && list.length; i++) {
+          const n = list[Math.floor(Math.random() * list.length)];
+          s.votes[n.id] = (s.votes[n.id] || 0) + 1;
+          s.ballots.push({ ref: makeRef(), nomineeId: n.id, nomineeName: n.name, categoryId: c.id, email,
+            voterName: names[v % names.length], demo: true, date: new Date(Date.now() - Math.random() * 7 * 864e5).toISOString() });
+        }
+      });
+    }
+    s.ballots.sort((a, b) => b.date.localeCompare(a.date));
+    save();
+  }
+  const bioFor = n => n.bio || `Nominated for ${category(n.categoryId)?.name || 'an award'} at the Paynesville Entertainment Awards ${settings().season}. Show your support — every vote counts!`;
 
   // ---------- Admin ----------
   function addNominee(data) {
@@ -145,14 +148,13 @@ const PEA = (() => {
 
   // ---------- Helpers ----------
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const money = n => '$' + Number(n).toFixed(2);
   const num = n => Number(n).toLocaleString();
   const param = k => new URLSearchParams(location.search).get(k);
   const fmtDate = iso => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  const methodName = m => m === 'orange' ? 'Orange Money' : m === 'mtn' ? 'Lonestar Cell MTN MoMo' : m;
+  const maskEmail = e => { const [u, d] = String(e).split('@'); return d ? (u.slice(0, 2) + '•••@' + d) : e; };
 
   function initials(name) {
-    const clean = name.replace(/[“”"]/g, '').split('–')[0].trim();
+    const clean = name.replace(/[“”"()]/g, '').split('–')[0].trim();
     const parts = clean.split(/\s+/).filter(Boolean);
     return ((parts[0] || '?')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
   }
@@ -173,11 +175,28 @@ const PEA = (() => {
 
   function toast(msg, type = '') {
     let el = document.getElementById('pea-toast');
-    if (!el) { el = document.createElement('div'); el.id = 'pea-toast'; el.className = 'toast'; document.body.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.id = 'pea-toast'; el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
     el.textContent = msg;
     el.className = 'toast show ' + type;
     clearTimeout(el._t);
     el._t = setTimeout(() => el.className = 'toast', 2800);
+  }
+
+  // ---------- Theme (light / dark, user's choice) ----------
+  function currentTheme() {
+    const t = document.documentElement.getAttribute('data-theme');
+    if (t) return t;
+    return window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('pea_theme', t); } catch (e) {}
+    document.querySelectorAll('.theme-toggle').forEach(b => {
+      b.innerHTML = t === 'dark' ? '☀️<span>Light</span>' : '🌙<span>Dark</span>';
+      b.setAttribute('aria-label', 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' mode');
+    });
+    const meta = document.querySelector('meta[name=theme-color]');
+    if (meta) meta.content = t === 'dark' ? '#070707' : '#faf7f0';
   }
 
   // ---------- Layout ----------
@@ -198,7 +217,10 @@ const PEA = (() => {
             <img src="assets/logo.png" alt="PEA logo" width="44" height="44">
             <span><strong>PEA</strong><small>Paynesville Entertainment Awards</small></span>
           </a>
-          <button class="nav-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+          <div class="nav-right">
+            <button class="theme-toggle" type="button"></button>
+            <button class="nav-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+          </div>
           <nav class="nav-links">
             ${links.map(([k, href, label]) => `<a href="${href}" class="${k === page ? 'active' : ''}">${label}</a>`).join('')}
             <a href="categories.html" class="btn btn-gold btn-sm">Vote Now</a>
@@ -209,6 +231,7 @@ const PEA = (() => {
         const open = header.classList.toggle('open');
         toggle.setAttribute('aria-expanded', open);
       });
+      header.querySelector('.theme-toggle').addEventListener('click', () => setTheme(currentTheme() === 'dark' ? 'light' : 'dark'));
     }
     const footer = document.getElementById('site-footer');
     if (footer) {
@@ -222,11 +245,12 @@ const PEA = (() => {
             <p class="muted small">For sponsorship, call <a href="tel:${settings().sponsorPhone.replace(/\s/g, '')}">${esc(settings().sponsorPhone)}</a> · Follow us ${esc(settings().social)}</p>
           </div>
           <div><h4>Explore</h4>${links.map(([, h, l]) => `<a href="${h}">${l}</a>`).join('')}</div>
-          <div><h4>Pay with</h4><span class="pay-chip orange">Orange Money</span><span class="pay-chip mtn">Lonestar Cell MTN MoMo</span>
-            <p class="muted small">Only ${money(settings().pricePerVote)} per vote</p></div>
+          <div><h4>How voting works</h4>
+            <p class="muted small">Voting is free. Enter your email to vote — each email gets <b>${limit()} votes in every category</b>.</p></div>
         </div>
-        <div class="container footer-bottom">© ${new Date().getFullYear()} Paynesville Entertainment Awards · Prototype preview — no real payments are processed.</div>`;
+        <div class="container footer-bottom">© ${new Date().getFullYear()} Paynesville Entertainment Awards · Prototype preview</div>`;
     }
+    setTheme(currentTheme());
   }
 
   document.addEventListener('DOMContentLoaded', renderLayout);
@@ -235,8 +259,9 @@ const PEA = (() => {
 
   return {
     load, save, reload, reset, settings, categories, nominees, category, nominee, byCategory,
-    votesFor, categoryTotal, totalVotes, transactions, recordPurchase, findTx, historyFor,
-    normalizePhone, validPhone, addNominee, updateNominee, removeNominee, addCategory, removeCategory,
-    updateSettings, generateDemoVotes, bioFor, esc, money, num, param, fmtDate, methodName, photo, toast
+    votesFor, categoryTotal, totalVotes, ballots, limit, castVote, findBallot, historyFor,
+    normalizeEmail, validEmail, usedInCategory, remainingInCategory,
+    addNominee, updateNominee, removeNominee, addCategory, removeCategory,
+    updateSettings, generateDemoVotes, bioFor, esc, num, param, fmtDate, maskEmail, photo, toast, setTheme, currentTheme
   };
 })();

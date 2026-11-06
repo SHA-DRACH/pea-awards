@@ -39,7 +39,7 @@
     });
   }
 
-  const TABS = [['overview', '📊 Overview'], ['results', '🏆 Results'], ['transactions', '💳 Transactions'], ['nominees', '👥 Nominees'], ['categories', '🗂️ Categories'], ['settings', '⚙️ Settings']];
+  const TABS = [['overview', '📊 Overview'], ['results', '🏆 Results'], ['transactions', '🗳️ Vote log'], ['nominees', '👥 Nominees'], ['categories', '🗂️ Categories'], ['settings', '⚙️ Settings']];
 
   function render() {
     if (!loggedIn()) return login();
@@ -61,34 +61,32 @@
 
   // ---------- Overview ----------
   function overview() {
-    const txs = PEA.transactions();
-    const revenue = txs.reduce((t, x) => t + x.amount, 0);
-    const voters = new Set(txs.map(x => x.phone)).size;
+    const bs = PEA.ballots();
+    const voters = new Set(bs.map(x => x.email)).size;
     const today = new Date().toDateString();
-    const todayVotes = txs.filter(x => new Date(x.date).toDateString() === today).reduce((t, x) => t + x.votes, 0);
-    const byMethod = m => txs.filter(x => x.method === m).reduce((t, x) => t + x.amount, 0);
+    const todayVotes = bs.filter(x => new Date(x.date).toDateString() === today).length;
+    const avg = voters ? (bs.length / voters).toFixed(1) : '0';
     const leaders = PEA.categories().map(c => {
       const list = PEA.byCategory(c.id).slice().sort((a, b) => PEA.votesFor(b.id) - PEA.votesFor(a.id));
       return { c, top: list[0], total: PEA.categoryTotal(c.id) };
     });
+    const busiest = leaders.slice().sort((a, b) => b.total - a.total).slice(0, 5);
+    const maxT = Math.max(1, ...busiest.map(x => x.total));
     panel().innerHTML = `
       <div class="panel-head"><h2>Dashboard</h2><span class="live">Live vote count</span></div>
       <div class="kpis">
         <div class="kpi"><span>Total votes</span><strong>${PEA.num(PEA.totalVotes())}</strong></div>
-        <div class="kpi"><span>Revenue</span><strong>${PEA.money(revenue)}</strong></div>
-        <div class="kpi"><span>Transactions</span><strong>${PEA.num(txs.length)}</strong></div>
         <div class="kpi"><span>Unique voters</span><strong>${PEA.num(voters)}</strong></div>
         <div class="kpi"><span>Votes today</span><strong>${PEA.num(todayVotes)}</strong></div>
+        <div class="kpi"><span>Votes / voter</span><strong>${avg}</strong></div>
+        <div class="kpi"><span>Categories</span><strong>${PEA.categories().length}</strong></div>
       </div>
       <div class="grid grid-2" style="margin-bottom:20px">
-        <div class="card"><h3 style="font-size:1.05rem">Revenue by payment method</h3>
-          ${[['orange', 'Orange Money'], ['mtn', 'Lonestar Cell MTN MoMo']].map(([m, l]) => {
-            const v = byMethod(m), pct = revenue ? v / revenue * 100 : 0;
-            return `<div style="margin:14px 0"><div class="sum-row"><span>${l}</span><b>${PEA.money(v)}</b></div><div class="bar"><span style="width:${pct}%"></span></div></div>`;
-          }).join('')}
+        <div class="card"><h3 style="font-size:1.05rem">Most active categories</h3>
+          ${busiest.map(({ c, total }) => `<div style="margin:12px 0"><div class="sum-row"><span>${c.icon} ${E(c.name)}</span><b>${PEA.num(total)}</b></div><div class="bar"><span style="width:${total / maxT * 100}%"></span></div></div>`).join('')}
         </div>
-        <div class="card"><h3 style="font-size:1.05rem">Recent transactions</h3>
-          ${txs.slice(0, 5).map(t => `<div class="sum-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%">${E(t.nomineeName)}</span><b>${t.votes} · ${PEA.money(t.amount)}</b></div>`).join('') || '<p class="muted">No transactions yet.</p>'}
+        <div class="card"><h3 style="font-size:1.05rem">Recent votes</h3>
+          ${bs.slice(0, 6).map(t => `<div class="sum-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${E(t.nomineeName)}</span><b class="small muted" style="white-space:nowrap">${E(PEA.maskEmail(t.email))}</b></div>`).join('') || '<p class="muted">No votes yet.</p>'}
         </div>
       </div>
       <div class="card">
@@ -98,7 +96,7 @@
           <tbody>${leaders.map(({ c, top, total }) => `<tr><td>${c.icon} ${E(c.name)}</td><td>${top && total ? E(top.name) : '<span class="muted">—</span>'}</td><td>${top ? PEA.num(PEA.votesFor(top.id)) : 0}</td><td>${PEA.num(total)}</td></tr>`).join('')}</tbody>
         </table></div>
       </div>
-      ${!txs.length ? `<p class="notice" style="margin-top:20px">No votes yet. To preview the dashboard with sample data, open <b>Settings → Generate sample votes</b>.</p>` : ''}`;
+      ${!bs.length ? `<p class="notice" style="margin-top:20px">No votes yet. To preview the dashboard with sample data, open <b>Settings → Generate sample votes</b>.</p>` : ''}`;
   }
 
   // ---------- Results ----------
@@ -132,24 +130,24 @@
     };
   }
 
-  // ---------- Transactions ----------
+  // ---------- Vote log ----------
   function transactions() {
     const q = txSearch.toLowerCase();
-    const list = PEA.transactions().filter(t => !q || [t.ref, t.nomineeName, t.voterName, t.phone].join(' ').toLowerCase().includes(q));
+    const list = PEA.ballots().filter(t => !q || [t.ref, t.nomineeName, t.voterName, t.email].join(' ').toLowerCase().includes(q));
+    const shown = list.slice(0, 300);
     panel().innerHTML = `
-      <div class="panel-head"><h2>Transactions</h2>
-        <div class="toolbar"><input class="input" id="tx-search" type="search" placeholder="Search ref, name, phone…" value="${E(txSearch)}">
+      <div class="panel-head"><h2>Vote log</h2>
+        <div class="toolbar"><input class="input" id="tx-search" type="search" placeholder="Search ref, nominee, email…" value="${E(txSearch)}">
         <button class="btn btn-sm" id="export-tx">⬇ Export CSV</button></div></div>
-      <p class="muted small">${list.length} transaction${list.length === 1 ? '' : 's'} · ${PEA.money(list.reduce((t, x) => t + x.amount, 0))}</p>
+      <p class="muted small">${PEA.num(list.length)} vote${list.length === 1 ? '' : 's'} from ${PEA.num(new Set(list.map(x => x.email)).size)} email(s)${list.length > shown.length ? ` · showing latest ${shown.length}` : ''}</p>
       <div class="table-wrap"><table>
-        <thead><tr><th>Date</th><th>Reference</th><th>Voter</th><th>Phone</th><th>Nominee</th><th>Votes</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
-        <tbody>${list.map(t => `<tr><td>${PEA.fmtDate(t.date)}</td><td>${t.ref}${t.demo ? ' <span class="muted small">(demo)</span>' : ''}</td><td>${E(t.voterName)}</td><td>${E(t.phone)}</td><td>${E(t.nomineeName)}</td><td>${PEA.num(t.votes)}</td><td>${PEA.money(t.amount)}</td><td><span class="badge ${t.method}">${PEA.methodName(t.method)}</span></td><td><span class="badge ok">${t.status}</span></td></tr>`).join('') || '<tr><td colspan="9" class="center muted">No transactions found.</td></tr>'}</tbody>
+        <thead><tr><th>Date</th><th>Reference</th><th>Voter</th><th>Email</th><th>Nominee</th><th>Category</th></tr></thead>
+        <tbody>${shown.map(t => `<tr><td>${PEA.fmtDate(t.date)}</td><td>${t.ref}${t.demo ? ' <span class="muted small">(demo)</span>' : ''}</td><td>${E(t.voterName)}</td><td>${E(t.email)}</td><td>${E(t.nomineeName)}</td><td>${E(PEA.category(t.categoryId)?.name || '')}</td></tr>`).join('') || '<tr><td colspan="6" class="center muted">No votes found.</td></tr>'}</tbody>
       </table></div>`;
-    const s = document.getElementById('tx-search');
-    s.oninput = e => { txSearch = e.target.value; transactions(); const el = document.getElementById('tx-search'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); };
-    document.getElementById('export-tx').onclick = () => downloadCSV('pea-transactions.csv',
-      [['Date', 'Reference', 'Voter', 'Phone', 'Nominee', 'Category', 'Votes', 'Amount', 'Method', 'Status'],
-        ...list.map(t => [t.date, t.ref, t.voterName, t.phone, t.nomineeName, PEA.category(t.categoryId)?.name || '', t.votes, t.amount, PEA.methodName(t.method), t.status])]);
+    document.getElementById('tx-search').oninput = e => { txSearch = e.target.value; transactions(); const el = document.getElementById('tx-search'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); };
+    document.getElementById('export-tx').onclick = () => downloadCSV('pea-votes.csv',
+      [['Date', 'Reference', 'Voter', 'Email', 'Nominee', 'Category'],
+        ...list.map(t => [t.date, t.ref, t.voterName, t.email, t.nomineeName, PEA.category(t.categoryId)?.name || ''])]);
   }
 
   // ---------- Nominees ----------
@@ -269,7 +267,7 @@
           <label class="switch"><input type="checkbox" id="st-open" ${s.votingOpen ? 'checked' : ''}><span></span></label>
         </div>
         <form id="st-form" class="grid grid-2" style="gap:0 16px" novalidate>
-          <div class="field"><label for="st-price">Price per vote (USD)</label><input class="input" id="st-price" type="number" step="0.01" min="0.01" value="${s.pricePerVote}"></div>
+          <div class="field"><label for="st-limit">Votes per email, per category</label><input class="input" id="st-limit" type="number" step="1" min="1" max="50" value="${PEA.limit()}"></div>
           <div class="field"><label for="st-season">Season</label><input class="input" id="st-season" value="${E(s.season)}"></div>
           <div class="field"><label for="st-date">Awards night date &amp; time</label><input class="input" id="st-date" type="datetime-local" value="${toLocal(s.eventDate)}"></div>
           <div class="field"><label for="st-venue">Venue</label><input class="input" id="st-venue" value="${E(s.eventVenue)}"></div>
@@ -278,7 +276,7 @@
       </div>
       <div class="card">
         <h3 style="font-size:1.05rem">Demo data</h3>
-        <p class="muted small">Use these to preview the dashboard. Sample transactions are marked “(demo)”.</p>
+        <p class="muted small">Use these to preview the dashboard. Sample votes come from example.com emails and are marked “(demo)”.</p>
         <div class="toolbar">
           <button class="btn btn-sm" id="st-demo">➕ Generate sample votes</button>
           <button class="btn btn-sm btn-danger" id="st-reset">↺ Reset all data</button>
@@ -287,19 +285,19 @@
     document.getElementById('st-open').onchange = e => { PEA.updateSettings({ votingOpen: e.target.checked }); PEA.toast(e.target.checked ? 'Voting is now OPEN' : 'Voting is now CLOSED'); };
     document.getElementById('st-form').addEventListener('submit', e => {
       e.preventDefault();
-      const price = Number(document.getElementById('st-price').value);
-      if (!(price > 0)) { PEA.toast('Enter a valid price', 'error'); return; }
+      const lim = Math.floor(Number(document.getElementById('st-limit').value));
+      if (!(lim >= 1)) { PEA.toast('Enter a valid number of votes', 'error'); return; }
       const date = document.getElementById('st-date').value;
       PEA.updateSettings({
-        pricePerVote: +price.toFixed(2),
+        votesPerCategory: lim,
         season: document.getElementById('st-season').value.trim() || s.season,
         eventDate: date ? new Date(date).toISOString() : s.eventDate,
         eventVenue: document.getElementById('st-venue').value.trim() || s.eventVenue
       });
       PEA.toast('Settings saved');
     });
-    document.getElementById('st-demo').onclick = () => { PEA.generateDemoVotes(60); PEA.toast('60 sample transactions added'); };
-    document.getElementById('st-reset').onclick = () => { if (confirm('Reset all votes, transactions, nominees and settings to the original data?')) { PEA.reset(); PEA.toast('Data reset'); render(); } };
+    document.getElementById('st-demo').onclick = () => { PEA.generateDemoVotes(25); PEA.toast('Sample votes from 25 demo voters added'); };
+    document.getElementById('st-reset').onclick = () => { if (confirm('Reset all votes, nominees and settings to the original data?')) { PEA.reset(); PEA.toast('Data reset'); render(); } };
   }
 
   // ---------- Utils ----------
