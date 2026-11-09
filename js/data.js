@@ -42,7 +42,6 @@ const PEA_CATEGORY_LIST = [
 
 const PEA_DEFAULT = {
   settings: {
-    votesPerCategory: 2,
     votingOpen: true,
     season: '2026/2027',
     eventDate: '2027-01-30T19:00:00',

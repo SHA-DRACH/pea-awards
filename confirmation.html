@@ -34,7 +34,6 @@
       }
       const n = PEA.nominee(b.nomineeId) || { id: b.nomineeId, name: b.nomineeName };
       const c = PEA.category(b.categoryId);
-      const rem = PEA.remainingInCategory(b.email, b.categoryId);
       root.innerHTML = `
         <div class="card receipt center reveal">
           <img src="${PEA.photo(n)}" alt="" style="width:110px;height:110px;border-radius:50%;object-fit:cover;margin:0 auto 14px;border:3px solid var(--gold);box-shadow:0 0 50px var(--glow)">
@@ -47,11 +46,10 @@
             <dt>Category</dt><dd>${PEA.esc(c ? c.name : '')}</dd>
             <dt>Email</dt><dd>${PEA.esc(PEA.maskEmail(b.email))}</dd>
             <dt>Date</dt><dd>${PEA.fmtDate(b.date)}</dd>
-            <dt>Votes left in this category</dt><dd>${rem} of ${PEA.limit()}</dd>
+            <dt>Status</dt><dd><span class="badge ok">Final — one vote per category</span></dd>
           </dl>
           <div class="grid" style="gap:10px">
-            ${rem > 0 ? `<a class="btn btn-gold btn-block" href="vote.html?id=${encodeURIComponent(b.nomineeId)}">Use your other vote</a>` : ''}
-            <a class="btn ${rem > 0 ? '' : 'btn-gold'} btn-block" href="categories.html">Vote in other categories</a>
+            <a class="btn btn-gold btn-block" href="categories.html">Vote in other categories</a>
             <button class="btn btn-ghost btn-block" id="share">📣 Tell your friends</button>
             <a class="btn btn-ghost btn-block" href="history.html">View my voting history</a>
           </div>

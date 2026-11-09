@@ -54,7 +54,7 @@
       document.getElementById('crumb').textContent = c.name;
       document.getElementById('cat-icon').textContent = c.icon;
       document.getElementById('cat-name').textContent = c.name;
-      document.getElementById('cat-sub').textContent = `${PEA.byCategory(c.id).length} nominees · ${PEA.limit()} free votes per email`;
+      document.getElementById('cat-sub').textContent = `${PEA.byCategory(c.id).length} nominees · one free vote per email`;
 
       const chips = document.getElementById('chips');
       chips.innerHTML = cats.map(x => `<a class="chip ${x.id === c.id ? 'active' : ''}" href="nominees.html?cat=${encodeURIComponent(x.id)}">${x.icon} ${PEA.esc(x.name)}</a>`).join('');

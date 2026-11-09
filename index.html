@@ -40,7 +40,7 @@
       <div class="container">
         <div>
           <h2>Your Vote Matters</h2>
-          <p>Voting is free! Use your email to cast <b class="limit">2</b> votes in every category.</p>
+          <p>Voting is free! Use your email to vote <b>once</b> in every category.</p>
         </div>
         <a href="categories.html" class="btn btn-lg">VOTE NOW →</a>
       </div>
@@ -95,7 +95,7 @@
         <div class="grid grid-4 steps">
           <div class="card step"><h3>Choose a category</h3><p>Browse the award categories and find your favourite nominee.</p></div>
           <div class="card step"><h3>Open their profile</h3><p>See the nominee's photo and details, then tap <b>Vote</b>.</p></div>
-          <div class="card step"><h3>Enter your email</h3><p>Each email address gets <b class="limit">2</b> votes in every category.</p></div>
+          <div class="card step"><h3>Enter your email</h3><p>Each email address can vote <b>once</b> in every category.</p></div>
           <div class="card step"><h3>Vote counted instantly</h3><p>Get a confirmation and check your voting history anytime.</p></div>
         </div>
       </div>
@@ -108,7 +108,6 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const s = PEA.settings();
-      document.querySelectorAll('.limit').forEach(el => el.textContent = PEA.limit());
       document.getElementById('season').textContent = 'Season ' + s.season;
       document.getElementById('season2').textContent = s.season;
       document.getElementById('event-date').textContent = new Date(s.eventDate).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' });
@@ -118,7 +117,7 @@
 
       const ann = document.getElementById('announce');
       document.getElementById('announce-text').innerHTML = s.votingOpen
-        ? `<b>Voting is now OPEN!</b> <span class="muted">Every email gets ${PEA.limit()} votes per category.</span>`
+        ? `<b>Voting is now OPEN!</b> <span class="muted">Each email can vote once in every category.</span>`
         : '<b>Voting is currently CLOSED.</b> <span class="muted">Thank you for your support — results will be announced at the awards night.</span>';
       ann.classList.toggle('closed', !s.votingOpen);
 

@@ -449,3 +449,7 @@ tbody tr:hover { background: var(--tint); }
 .nom-card:hover .photo::after { transform: translateX(100%); }
 
 @media (prefers-reduced-motion: reduce) { .hero h1.gold-text { animation: none; } #scroll-progress { display: none; } }
+
+/* Vote page: "already voted in this category" state */
+.votes-left.used { background: rgba(62, 207, 142, .08); border-color: rgba(62, 207, 142, .35); }
+.votes-left.used strong { color: var(--ok); }

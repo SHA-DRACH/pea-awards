@@ -50,7 +50,7 @@
             <h1 class="gold-text">${PEA.esc(n.name)}</h1>
             <p style="color:#ddd5c2">${PEA.esc(PEA.bioFor(n))}</p>
             <div class="stat-row">
-              <div class="stat"><strong>${PEA.limit()}</strong><span>Votes per email</span></div>
+              <div class="stat"><strong>1</strong><span>Vote per email</span></div>
               <div class="stat"><strong>${PEA.byCategory(n.categoryId).length}</strong><span>Nominees in category</span></div>
               <div class="stat"><strong>${s.season}</strong><span>Season</span></div>
             </div>
@@ -58,7 +58,7 @@
               ${voteBtn}
               <button class="btn" id="share">🔗 Share</button>
             </div>
-            <p class="muted small" style="margin-top:14px">Voting is free — enter your email to vote. Each email gets ${PEA.limit()} votes in this category.</p>
+            <p class="muted small" style="margin-top:14px">Voting is free — enter your email to vote. Each email can vote once in this category.</p>
           </div>
         </div>
         ${others.length ? `

@@ -22,7 +22,7 @@
       <div class="container">
         <div class="breadcrumb" id="crumb"></div>
         <h1 class="gold-text">Cast Your Vote</h1>
-        <p class="muted">Voting is free. Each email address gets <b class="limit">2</b> votes in every category.</p>
+        <p class="muted">Voting is free. Each email address can vote <b>once</b> in every category.</p>
       </div>
     </section>
 
@@ -52,8 +52,8 @@
             <h3 style="font-size:1.05rem">Voting rules</h3>
             <ul class="rules">
               <li>✉️ <span>Vote with a valid email address.</span></li>
-              <li>🗳️ <span>Each email gets <b class="limit">2</b> votes in <b>every</b> category.</span></li>
-              <li>🎯 <span>Give both votes to one nominee, or split them between two.</span></li>
+              <li>🗳️ <span>Each email can vote <b>once</b> in <b>every</b> category.</span></li>
+              <li>🎯 <span>Choose carefully — a vote can’t be changed once it’s cast.</span></li>
               <li>⚡ <span>Votes are counted instantly.</span></li>
               <li>📜 <span>See your votes anytime on <a href="history.html">My Votes</a>.</span></li>
             </ul>
@@ -74,7 +74,6 @@
       const n = PEA.nominee(PEA.param('id'));
       const s = PEA.settings();
       const root = document.getElementById('root');
-      document.querySelectorAll('.limit').forEach(el => el.textContent = PEA.limit());
       if (!n) { root.innerHTML = '<div class="empty"><div class="big">🤔</div><p>Please choose a nominee first.</p><a class="btn btn-gold" href="categories.html">Browse categories</a></div>'; return; }
       if (!s.votingOpen) { root.innerHTML = '<div class="empty"><div class="big">⏳</div><p>Voting is currently closed.</p><a class="btn" href="index.html">Back home</a></div>'; return; }
       const c = PEA.category(n.categoryId);
@@ -103,11 +102,13 @@
         const ok = PEA.validEmail(emailEl.value);
         left.hidden = !ok;
         if (!ok) { btn.disabled = false; btn.textContent = '🏆 Vote'; return; }
-        const rem = PEA.remainingInCategory(emailEl.value, c.id), lim = PEA.limit();
-        left.innerHTML = `<strong>${rem}</strong><span>of ${lim} vote${lim > 1 ? 's' : ''} left<br><small class="muted">in ${PEA.esc(c.name)}</small></span>
-          <span class="pips">${Array.from({ length: lim }, (_, i) => `<i class="${i < rem ? 'on' : ''}"></i>`).join('')}</span>`;
-        btn.disabled = rem <= 0;
-        btn.textContent = rem <= 0 ? 'No votes left in this category' : `🏆 Vote for ${n.name.split(' – ')[0]}`;
+        const prior = PEA.voteInCategory(emailEl.value, c.id);
+        left.classList.toggle('used', !!prior);
+        left.innerHTML = prior
+          ? `<strong>✓</strong><span>You already voted in this category<br><small class="muted">for <b>${PEA.esc(prior.nomineeName)}</b></small></span>`
+          : `<strong>1</strong><span>vote available<br><small class="muted">in ${PEA.esc(c.name)}</small></span><span class="pips"><i class="on"></i></span>`;
+        btn.disabled = !!prior;
+        btn.textContent = prior ? 'Already voted in this category' : `🏆 Vote for ${n.name.split(' – ')[0]}`;
       }
       emailEl.addEventListener('input', () => { err.textContent = ''; emailEl.classList.remove('invalid'); refresh(); });
       refresh();
@@ -118,7 +119,7 @@
         if (!PEA.validEmail(emailEl.value)) { box.innerHTML = ''; return; }
         const open = PEA.categories().filter(x => x.id !== c.id && PEA.remainingInCategory(emailEl.value, x.id) > 0).slice(0, 5);
         box.innerHTML = open.length ? `<h3 style="font-size:.95rem">Keep voting</h3><div class="cat-progress">${open.map(x =>
-          `<a class="row" href="nominees.html?cat=${encodeURIComponent(x.id)}"><span>${x.icon} ${PEA.esc(x.name)}</span><span class="badge">${PEA.remainingInCategory(emailEl.value, x.id)} left</span></a>`).join('')}</div>` : '';
+          `<a class="row" href="nominees.html?cat=${encodeURIComponent(x.id)}"><span>${x.icon} ${PEA.esc(x.name)}</span><span class="badge">Vote →</span></a>`).join('')}</div>` : '';
       }
       emailEl.addEventListener('change', otherCats);
       otherCats();

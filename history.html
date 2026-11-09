@@ -22,7 +22,7 @@
       <div class="container">
         <span class="eyebrow">Voter History</span>
         <h1 class="gold-text">My Votes</h1>
-        <p class="muted">Enter the email you voted with to see your votes and how many you have left.</p>
+        <p class="muted">Enter the email you voted with to see your votes and the categories you can still vote in.</p>
         <form id="lookup" class="card" style="max-width:520px;margin:24px auto 0;text-align:left" novalidate>
           <div class="field" style="margin-bottom:12px">
             <label for="email">Email address</label>
@@ -59,7 +59,7 @@
             <div class="kpi"><span>Votes cast</span><strong>${PEA.num(list.length)}</strong></div>
             <div class="kpi"><span>Categories voted</span><strong>${used} / ${cats.length}</strong></div>
             <div class="kpi"><span>Nominees supported</span><strong>${new Set(list.map(x => x.nomineeId)).size}</strong></div>
-            <div class="kpi"><span>Votes remaining</span><strong>${PEA.num(remaining)}</strong></div>
+            <div class="kpi"><span>Categories left</span><strong>${PEA.num(remaining)}</strong></div>
           </div>
           <h2 style="font-size:1.2rem">Your votes</h2>
           <div class="tx-list">${list.map(b => {
@@ -70,8 +70,8 @@
               <div><h4>${PEA.esc(b.nomineeName)}</h4><div class="sub">${PEA.esc(c ? c.name : '')}</div><div class="sub">${PEA.fmtDate(b.date)}</div></div>
               <div class="amt"><strong>1 vote</strong><span class="sub">${b.ref}</span></div></a>`;
           }).join('')}</div>
-          ${left.length ? `<h2 style="font-size:1.2rem;margin-top:30px">Categories with votes left</h2>
-          <div class="cat-progress">${left.map(c => `<a class="row" href="nominees.html?cat=${encodeURIComponent(c.id)}"><span>${c.icon} ${PEA.esc(c.name)}</span><span class="badge">${PEA.remainingInCategory(email, c.id)} left</span></a>`).join('')}</div>` : ''}`;
+          ${left.length ? `<h2 style="font-size:1.2rem;margin-top:30px">Categories you can still vote in</h2>
+          <div class="cat-progress">${left.map(c => `<a class="row" href="nominees.html?cat=${encodeURIComponent(c.id)}"><span>${c.icon} ${PEA.esc(c.name)}</span><span class="badge">Vote →</span></a>`).join('')}</div>` : ''}`;
       }
 
       document.getElementById('lookup').addEventListener('submit', e => {

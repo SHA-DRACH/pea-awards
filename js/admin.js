@@ -263,11 +263,10 @@
       <div class="panel-head"><h2>Settings</h2></div>
       <div class="card" style="margin-bottom:20px">
         <div class="manage-item" style="border:0;background:none;padding:0 0 16px">
-          <div class="info"><b>Voting open</b><small>When off, the public cannot buy votes.</small></div>
+          <div class="info"><b>Voting open</b><small>When off, nobody can vote. Each email can vote once per category.</small></div>
           <label class="switch"><input type="checkbox" id="st-open" ${s.votingOpen ? 'checked' : ''}><span></span></label>
         </div>
         <form id="st-form" class="grid grid-2" style="gap:0 16px" novalidate>
-          <div class="field"><label for="st-limit">Votes per email, per category</label><input class="input" id="st-limit" type="number" step="1" min="1" max="50" value="${PEA.limit()}"></div>
           <div class="field"><label for="st-season">Season</label><input class="input" id="st-season" value="${E(s.season)}"></div>
           <div class="field"><label for="st-date">Awards night date &amp; time</label><input class="input" id="st-date" type="datetime-local" value="${toLocal(s.eventDate)}"></div>
           <div class="field"><label for="st-venue">Venue</label><input class="input" id="st-venue" value="${E(s.eventVenue)}"></div>
@@ -285,11 +284,8 @@
     document.getElementById('st-open').onchange = e => { PEA.updateSettings({ votingOpen: e.target.checked }); PEA.toast(e.target.checked ? 'Voting is now OPEN' : 'Voting is now CLOSED'); };
     document.getElementById('st-form').addEventListener('submit', e => {
       e.preventDefault();
-      const lim = Math.floor(Number(document.getElementById('st-limit').value));
-      if (!(lim >= 1)) { PEA.toast('Enter a valid number of votes', 'error'); return; }
       const date = document.getElementById('st-date').value;
       PEA.updateSettings({
-        votesPerCategory: lim,
         season: document.getElementById('st-season').value.trim() || s.season,
         eventDate: date ? new Date(date).toISOString() : s.eventDate,
         eventVenue: document.getElementById('st-venue').value.trim() || s.eventVenue

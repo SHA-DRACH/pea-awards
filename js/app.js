@@ -52,7 +52,7 @@ const PEA = (() => {
   const categoryTotal = id => byCategory(id).reduce((t, n) => t + votesFor(n.id), 0);
   const totalVotes = () => Object.values(load().votes).reduce((a, b) => a + b, 0);
   const ballots = () => load().ballots;
-  const limit = () => Number(settings().votesPerCategory) || 2;
+  const limit = () => 1;   // one-time voting: each email votes once per category
 
   // ---------- Email voting ----------
   const normalizeEmail = e => String(e || '').trim().toLowerCase();
@@ -75,8 +75,9 @@ const PEA = (() => {
     if (!s.settings.votingOpen) throw new Error('Voting is currently closed.');
     if (!validEmail(email)) throw new Error('Please enter a valid email address.');
     const mail = normalizeEmail(email);
-    if (remainingInCategory(mail, n.categoryId) <= 0) {
-      throw new Error(`You have used all ${limit()} votes for ${category(n.categoryId).name}.`);
+    const prior = ballots().find(b => b.email === mail && b.categoryId === n.categoryId);
+    if (prior) {
+      throw new Error(`This email has already voted in ${category(n.categoryId).name} (for ${prior.nomineeName}). Each email can vote only once per category.`);
     }
     const b = {
       ref: makeRef(), nomineeId, nomineeName: n.name, categoryId: n.categoryId,
@@ -89,6 +90,7 @@ const PEA = (() => {
   }
   const findBallot = ref => ballots().find(b => b.ref === ref);
   const historyFor = email => ballots().filter(b => b.email === normalizeEmail(email));
+  const voteInCategory = (email, categoryId) => ballots().find(b => b.email === normalizeEmail(email) && b.categoryId === categoryId);
 
   // Admin demo helper: sample votes so the dashboard can be previewed.
   function generateDemoVotes(voters = 25) {
@@ -99,8 +101,7 @@ const PEA = (() => {
       const cats = s.categories.slice().sort(() => Math.random() - .5).slice(0, 3 + Math.floor(Math.random() * 6));
       cats.forEach(c => {
         const list = s.nominees.filter(n => n.categoryId === c.id);
-        const k = 1 + Math.floor(Math.random() * limit());
-        for (let i = 0; i < k && list.length; i++) {
+        for (let i = 0; i < 1 && list.length; i++) {
           const n = list[Math.floor(Math.random() * list.length)];
           s.votes[n.id] = (s.votes[n.id] || 0) + 1;
           s.ballots.push({ ref: makeRef(), nomineeId: n.id, nomineeName: n.name, categoryId: c.id, email,
@@ -307,7 +308,7 @@ const PEA = (() => {
           </div>
           <div><h4>Explore</h4>${links.map(([, h, l]) => `<a href="${h}">${l}</a>`).join('')}</div>
           <div><h4>How voting works</h4>
-            <p class="muted small">Voting is free. Enter your email to vote — each email gets <b>${limit()} votes in every category</b>.</p></div>
+            <p class="muted small">Voting is free. Enter your email to vote — each email can vote <b>once in every category</b>.</p></div>
         </div>
         <div class="container footer-bottom">© ${new Date().getFullYear()} Paynesville Entertainment Awards · Prototype preview</div>`;
     }
@@ -332,7 +333,7 @@ const PEA = (() => {
 
   return {
     load, save, reload, reset, settings, categories, nominees, category, nominee, byCategory,
-    votesFor, categoryTotal, totalVotes, ballots, limit, castVote, findBallot, historyFor,
+    votesFor, categoryTotal, totalVotes, ballots, limit, castVote, findBallot, historyFor, voteInCategory,
     normalizeEmail, validEmail, usedInCategory, remainingInCategory,
     addNominee, updateNominee, removeNominee, addCategory, removeCategory,
     updateSettings, generateDemoVotes, bioFor, animate, esc, num, param, fmtDate, maskEmail, photo, toast, setTheme, currentTheme
