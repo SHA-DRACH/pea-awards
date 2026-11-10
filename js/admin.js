@@ -13,9 +13,13 @@
   const loggedIn = () => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch (e) { return false; } };
 
   function login() {
+    document.body.classList.add('adm-auth-mode');
+    document.body.classList.remove('adm-app-mode', 'adm-lock');
     app.innerHTML = `
-      <div class="card login-box reveal">
-        <img src="assets/logo.png" alt="PEA">
+      <div class="adm-auth">
+      <button class="theme-toggle adm-auth-theme" type="button"></button>
+      <div class="card login-box adm-auth-card">
+        <div class="stage-logo small" style="margin-bottom:22px"><span class="rays"></span><span class="beam l"></span><span class="beam r"></span><span class="halo"></span><span class="floor"></span><img src="assets/logo.png" alt="PEA"><i class="spark"></i><i class="spark"></i><i class="spark"></i></div>
         <h1 style="font-size:1.6rem" class="gold-text">Organizer Login</h1>
         <p class="muted">Private area for managing the competition.</p>
         <form id="login-form" novalidate>
@@ -27,7 +31,11 @@
           <button class="btn btn-gold btn-block" type="submit">Sign in</button>
         </form>
         <p class="notice" style="margin-top:18px">Prototype demo password: <b>${DEMO_PASSWORD}</b></p>
-      </div>`;
+      </div>
+      <p class="adm-auth-foot">🔒 Paynesville Entertainment Awards · organizer area (prototype)</p></div>`;
+    app.querySelector('.adm-auth-theme').onclick = () => PEA.setTheme(PEA.currentTheme() === 'dark' ? 'light' : 'dark');
+    PEA.setTheme(PEA.currentTheme());
+    aos();
     document.getElementById('login-form').addEventListener('submit', e => {
       e.preventDefault();
       if (document.getElementById('pw').value === DEMO_PASSWORD) {
@@ -39,23 +47,74 @@
     });
   }
 
-  const TABS = [['overview', '📊 Overview'], ['results', '🏆 Results'], ['transactions', '🗳️ Vote log'], ['nominees', '👥 Nominees'], ['categories', '🗂️ Categories'], ['settings', '⚙️ Settings']];
+  // [key, icon, label, group]
+  const TABS = [['overview', '📊', 'Overview', 'Main'], ['results', '🏆', 'Results', 'Main'], ['transactions', '🗳️', 'Vote log', 'Votes'],
+    ['nominees', '🌟', 'Nominees', 'Content'], ['categories', '🗂️', 'Categories', 'Content'], ['settings', '⚙️', 'Settings', 'System']];
+
+  /** AOS scroll animations for the dashboard content. */
+  function aos() {
+    if (!window.AOS || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    [['#panel .kpi', 'fade-up', 70], ['#panel .grid > .card', 'fade-up', 90], ['#panel > .card', 'fade-up', 60], ['#panel .manage-item', 'fade-up', 30],
+     ['#panel > .table-wrap', 'fade-up', 0], ['.adm-auth-card', 'zoom-in', 0]].forEach(([sel, anim, step]) =>
+      document.querySelectorAll(sel).forEach((el, i) => {
+        if (el.hasAttribute('data-aos')) return;
+        el.setAttribute('data-aos', anim);
+        if (step) el.setAttribute('data-aos-delay', String(Math.min(i, 8) * step));
+      }));
+    if (!window.__peaAdminAos) { AOS.init({ duration: 600, easing: 'ease-out-cubic', once: true, offset: 10 }); window.__peaAdminAos = true; }
+    else AOS.refreshHard();
+  }
 
   function render() {
     if (!loggedIn()) return login();
     PEA.reload();
+    document.body.classList.add('adm-app-mode');
+    document.body.classList.remove('adm-auth-mode');
+    let lastGroup = '';
+    const nav = TABS.map(([k, ic, label, g]) => {
+      const head = g !== lastGroup ? `<div class="adm-group">${g}</div>` : '';
+      lastGroup = g;
+      return `${head}<button type="button" data-tab="${k}" class="${k === tab ? 'active' : ''}"><span class="ic">${ic}</span><span class="lb">${label}</span></button>`;
+    }).join('');
+    const t = TABS.find(x => x[0] === tab);
     app.innerHTML = `
-      <div class="admin-shell">
-        <nav class="admin-nav">${TABS.map(([k, l]) => `<button data-tab="${k}" class="${k === tab ? 'active' : ''}">${l}</button>`).join('')}
-          <button data-action="logout">🚪 Log out</button></nav>
-        <section id="panel"></section>
+      <div class="adm" id="adm">
+        <aside class="adm-side" aria-label="Dashboard menu">
+          <div class="adm-brand"><img src="assets/logo.png" alt=""><div><b>PEA</b><small>Admin dashboard</small></div>
+            <button class="adm-x" type="button" aria-label="Close menu">✕</button></div>
+          <div class="adm-me"><span class="av">PA</span><div><b>Prototype Admin</b><small>Organizer</small></div></div>
+          <nav class="adm-nav">${nav}</nav>
+          <div class="adm-side-foot">
+            <a class="btn btn-sm btn-ghost btn-block" href="index.html" target="_blank" rel="noopener">🌐 View website</a>
+            <button class="btn btn-sm btn-danger btn-block" data-action="logout" type="button">⎋ Sign out</button>
+          </div>
+        </aside>
+        <div class="adm-scrim" aria-hidden="true"></div>
+        <div class="adm-main">
+          <header class="adm-top">
+            <button class="adm-burger" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+            <div class="adm-title"><small>Admin / ${t[3]}</small><h1>${t[2]}</h1></div>
+            <div class="adm-top-actions"><button class="theme-toggle" type="button"></button><span class="av small">PA</span></div>
+          </header>
+          <section id="panel" class="adm-content" aria-live="polite"></section>
+        </div>
       </div>`;
-    app.querySelector('.admin-nav').addEventListener('click', e => {
-      const b = e.target.closest('button'); if (!b) return;
+    const root = document.getElementById('adm');
+    const burger = root.querySelector('.adm-burger');
+    const setOpen = open => { root.classList.toggle('open', open); burger.setAttribute('aria-expanded', open); document.body.classList.toggle('adm-lock', open); };
+    burger.onclick = () => setOpen(!root.classList.contains('open'));
+    root.querySelector('.adm-scrim').onclick = () => setOpen(false);
+    root.querySelector('.adm-x').onclick = () => setOpen(false);
+    root.querySelector('.adm-top .theme-toggle').onclick = () => PEA.setTheme(PEA.currentTheme() === 'dark' ? 'light' : 'dark');
+    PEA.setTheme(PEA.currentTheme());
+    root.querySelector('.adm-side').addEventListener('click', e => {
+      const b = e.target.closest('button[data-tab], button[data-action]'); if (!b) return;
+      document.body.classList.remove('adm-lock');
       if (b.dataset.action === 'logout') { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {} return render(); }
-      tab = b.dataset.tab; render();
+      tab = b.dataset.tab; render(); window.scrollTo(0, 0);
     });
     ({ overview, results, transactions, nominees, categories, settings })[tab]();
+    setTimeout(aos, 0);
   }
   const panel = () => document.getElementById('panel');
 
@@ -322,7 +381,10 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', render);
+  document.addEventListener('DOMContentLoaded', () => {
+    ['site-header', 'site-footer'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
+    render();
+  });
   // Live updates when votes are cast in another tab
   document.addEventListener('pea:update', () => { if (loggedIn() && ['overview', 'results', 'transactions'].includes(tab)) render(); });
 })();

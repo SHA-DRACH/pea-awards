@@ -37,3 +37,14 @@ Open `index.html` in a browser, or serve the folder:
 ```bash
 python -m http.server 8000
 ```
+
+## Modern design (Nov 2026)
+
+The prototype now uses the same modern "awards night" design as the full PHP/MySQL site:
+- an original 30-second stage video behind the home page (a light version is used on phones)
+- a splash screen on every page, and a spotlight logo with light rays
+- scrolling rows of nominee faces, and category cards made from nominee photos
+- stage-style page headers, and a categories page with swipeable photo rows
+- an admin dashboard with a left sidebar and top bar (it becomes a slide-out menu on phones)
+
+The behaviour is unchanged: it's still a prototype that stores data in the browser.

@@ -1,0 +1,143 @@
+/* =====================================================================
+   PEA Admin Dashboard — app layout (left sidebar + top bar), responsive
+   ===================================================================== */
+:root { --side-w: 268px; --side-bg: linear-gradient(180deg, #120c05 0%, #0a0704 55%, #070503 100%); --side-text: #d9d0bb; }
+
+body[data-page="admin"] { background-attachment: fixed; }
+body.adm-app-mode #app.container, body.adm-auth-mode #app.container { max-width: none; padding: 0; }
+body.adm-lock { overflow: hidden; }
+
+/* ---------- Sidebar ---------- */
+.adm-side { position: fixed; z-index: 80; top: 0; left: 0; bottom: 0; width: var(--side-w); display: flex; flex-direction: column;
+  background: var(--side-bg); color: var(--side-text); border-right: 1px solid rgba(212, 175, 55, .25); box-shadow: 8px 0 40px rgba(0, 0, 0, .25);
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+.adm-side::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background: radial-gradient(ellipse at 20% -10%, rgba(212, 175, 55, .28), transparent 55%), radial-gradient(ellipse at 120% 110%, rgba(150, 60, 120, .15), transparent 50%); }
+.adm-side > * { position: relative; }
+.adm-brand { display: flex; align-items: center; gap: 12px; padding: 20px 20px 14px; }
+.adm-brand img { width: 46px; height: 46px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(246, 220, 124, .5), 0 0 24px rgba(212, 175, 55, .45); }
+.adm-brand b { display: block; font: 800 1.25rem var(--font-display); letter-spacing: .14em; background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.adm-brand small { font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: #a39d8f; }
+.adm-x { display: none; margin-left: auto; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(246, 220, 124, .3); background: transparent; color: #f6dc7c; cursor: pointer; }
+.adm-me { display: flex; align-items: center; gap: 12px; margin: 4px 14px 10px; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(246, 220, 124, .15); }
+.adm-me b { display: block; color: #fff; font-size: .92rem; line-height: 1.2; }
+.adm-me small { color: #f6dc7c; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
+.av { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--gold-grad); color: #1a1205; font: 800 .9rem var(--font-body); border: 0; }
+.av.small { width: 38px; height: 38px; cursor: pointer; font-size: .82rem; box-shadow: 0 4px 14px var(--glow); }
+.adm-nav { flex: 1; overflow-y: auto; padding: 6px 12px 12px; scrollbar-width: thin; }
+.adm-group { margin: 14px 10px 6px; font-size: .64rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #8a8273; }
+.adm-nav button { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; margin: 2px 0; border: 0; border-radius: 12px;
+  background: transparent; color: var(--side-text); font: 500 .92rem var(--font-body); text-align: left; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
+.adm-nav button .ic { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px; background: rgba(255, 255, 255, .05); font-size: 1rem; transition: background .2s; }
+.adm-nav button:hover { background: rgba(212, 175, 55, .1); color: #fff; transform: translateX(3px); }
+.adm-nav button.active { background: linear-gradient(90deg, rgba(212, 175, 55, .28), rgba(212, 175, 55, .06)); color: #f6dc7c; font-weight: 600; }
+.adm-nav button.active::before { content: ""; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 4px; border-radius: 0 4px 4px 0; background: var(--gold-grad); box-shadow: 0 0 12px rgba(212, 175, 55, .8); }
+.adm-nav button.active .ic { background: var(--gold-grad); }
+.adm-side-foot { display: grid; gap: 8px; padding: 14px; border-top: 1px solid rgba(246, 220, 124, .15); }
+.adm-side-foot .btn-ghost { color: #f4efe2; border-color: rgba(255, 255, 255, .15); }
+
+/* ---------- Main area ---------- */
+.adm-main { margin-left: var(--side-w); min-height: 100vh; display: flex; flex-direction: column; }
+.adm-top { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: var(--header-bg);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.adm-title { flex: 1; min-width: 0; }
+.adm-title small { display: block; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.adm-title h1 { margin: 0; font-size: clamp(1.15rem, 2.4vw, 1.6rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-top-actions { display: flex; align-items: center; gap: 10px; }
+.adm-burger { display: none; width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; padding: 11px 10px; }
+.adm-burger span { display: block; height: 2px; margin: 4px 0; border-radius: 2px; background: var(--gold); }
+.adm-content { width: 100%; max-width: 1440px; padding: 26px 32px 70px; }
+.adm-notice { margin: 16px 32px 0; }
+/* the page title lives in the top bar */
+.adm-content > .panel-head:first-child h2, .adm-content > .welcome-card + .panel-head h2 { display: none; }
+.adm-content > .panel-head:first-child, .adm-content > .welcome-card + .panel-head { justify-content: flex-end; min-height: 0; }
+.adm-content > .panel-head:first-child:empty { display: none; }
+.adm-content .card { border-radius: 18px; }
+.adm-scrim { display: none; }
+
+/* ---------- Tablet & phone: sidebar becomes a slide-out menu ---------- */
+@media (max-width: 1080px) {
+  .adm-side { transform: translateX(-105%); width: min(300px, 86vw); }
+  .adm.open .adm-side { transform: none; }
+  .adm-scrim { display: block; position: fixed; inset: 0; z-index: 75; background: rgba(0, 0, 0, .55); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .adm.open .adm-scrim { opacity: 1; pointer-events: auto; }
+  .adm-x { display: grid; place-items: center; }
+  .adm-main { margin-left: 0; }
+  .adm-burger { display: block; }
+  .adm-top { padding: 12px 18px; }
+  .adm-content { padding: 20px 18px 60px; }
+  .adm-notice { margin: 14px 18px 0; }
+}
+@media (max-width: 560px) {
+  .adm-top-actions .nav-status { display: none; }
+  .adm-top-actions .theme-toggle span { display: none; }
+  .adm-top-actions .theme-toggle { width: 40px; padding: 0; justify-content: center; }
+  .adm-content { padding: 16px 14px 60px; }
+}
+
+/* ---------- Welcome dashboard ---------- */
+.welcome-card { position: relative; overflow: hidden; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; align-items: center;
+  padding: 26px; margin-bottom: 22px; border-radius: 22px; color: #f4efe2; border: 1px solid rgba(246, 220, 124, .35); box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+  background: #0b0703 url("../assets/video/stage-poster.jpg") center 30% / cover no-repeat; }
+.welcome-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgba(8, 5, 2, .92) 30%, rgba(8, 5, 2, .55)); }
+.welcome-card .eyebrow { color: #f6dc7c; }
+.welcome-card h2 { margin: 2px 0 8px; font-size: clamp(1.4rem, 3.2vw, 2rem); color: #fff; }
+.welcome-card p { color: #e2d9c6; margin: 0 0 12px; }
+.wc-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: .8rem; color: #cfc6b3; }
+.quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.quick a { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(246, 220, 124, .25);
+  color: #fff; backdrop-filter: blur(6px); transition: transform .25s, background .25s, border-color .25s; }
+.quick a span { font-size: 1.4rem; }
+.quick a b { font-size: .86rem; font-weight: 600; }
+.quick a:hover { transform: translateY(-4px); background: rgba(212, 175, 55, .2); border-color: #f6dc7c; color: #fff; }
+.wc-check { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 14px 16px; border-radius: 16px; background: rgba(0, 0, 0, .35); border: 1px dashed rgba(246, 220, 124, .35); }
+.wc-check > b { color: #f6dc7c; font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; }
+.wc-check ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; flex: 1; }
+.wc-check li { display: flex; gap: 8px; align-items: center; font-size: .86rem; color: #e2d9c6; }
+.wc-check li i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .75rem; border: 1px solid rgba(246, 220, 124, .5); color: #f6dc7c; }
+.wc-check li.ok i { background: #3ecf8e; border-color: #3ecf8e; color: #062b18; font-weight: 800; }
+.wc-check .btn-ghost { color: #f4efe2; border-color: rgba(255, 255, 255, .2); }
+@media (max-width: 860px) { .welcome-card { grid-template-columns: 1fr; padding: 20px; } }
+
+/* ---------- Modern stat cards ---------- */
+.adm-content .kpis { grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 16px; }
+.adm-content .kpi { position: relative; overflow: hidden; padding: 18px 18px 16px; border-radius: 18px; box-shadow: var(--shadow); transition: transform .25s, box-shadow .25s; }
+.adm-content .kpi::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--gold-grad); }
+.adm-content .kpi::after { content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, var(--tint-2), transparent 70%); }
+.adm-content .kpi:hover { transform: translateY(-4px); box-shadow: 0 16px 36px var(--glow); }
+.adm-content .kpi strong { font-size: clamp(1.5rem, 3vw, 2rem); }
+@media (max-width: 420px) { .adm-content .kpis { grid-template-columns: 1fr 1fr; gap: 10px; } }
+
+/* ---------- Forms: role cards, password tools, sign-in details ---------- */
+.role-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; }
+.role-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 14px; border: 1px solid var(--input-border); background: var(--input-bg); cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .2s; }
+.role-card input { position: absolute; opacity: 0; pointer-events: none; }
+.role-card .rc-ic { font-size: 1.4rem; }
+.role-card b { font-size: .92rem; }
+.role-card small { color: var(--muted); font-size: .74rem; line-height: 1.35; }
+.role-card:hover { transform: translateY(-2px); border-color: var(--gold); }
+.role-card:has(input:checked) { border-color: var(--gold); background: var(--tint); box-shadow: 0 0 0 2px var(--tint-2); }
+.role-card:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pw-wrap { position: relative; }
+.pw-wrap .input { padding-right: 52px; font-family: ui-monospace, Consolas, monospace; letter-spacing: .04em; }
+.pw-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 36px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; font-size: 1.05rem; }
+.pw-tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
+.pw-field .meter { margin: 0 0 4px; }
+.done-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.done-head > span { font-size: 2.2rem; }
+.done-head h3 { margin: 0; }
+.signin-details { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 14px; margin: 0 0 14px; padding: 14px; border-radius: 14px; background: var(--input-bg); border: 1px solid var(--input-border); }
+.signin-details dt { color: var(--muted); font-size: .85rem; }
+.signin-details dd { margin: 0; font-weight: 600; word-break: break-all; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#sd-pw { font-family: ui-monospace, Consolas, monospace; letter-spacing: .05em; }
+.modal .card.wide { max-width: 680px; }
+
+/* ---------- Sign-in screens on a stage ---------- */
+.adm-auth { position: relative; min-height: 100svh; display: grid; place-items: center; align-content: center; gap: 16px; padding: 40px 16px; isolation: isolate;
+  background: #070402 url("../assets/video/stage-poster.jpg") center / cover no-repeat; }
+.adm-auth::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at center, rgba(5, 3, 2, .35), rgba(5, 3, 2, .85)); }
+.adm-auth-card { width: min(440px, 100%); margin: 0; padding: 30px 28px; background: var(--surface); box-shadow: 0 30px 80px rgba(0, 0, 0, .55); border-color: rgba(246, 220, 124, .4); }
+.adm-auth-card .stage-logo.small { --size: 92px; }
+.adm-auth-theme { position: absolute; top: 18px; right: 18px; }
+.adm-auth-foot { color: #cfc6b3; font-size: .78rem; margin: 0; text-align: center; }
+body.adm-auth-mode .splash-title { display: block; }
